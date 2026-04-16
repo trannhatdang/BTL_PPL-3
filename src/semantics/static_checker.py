@@ -91,19 +91,18 @@ class Symbol():
             return str(self)
         else:
             # result = format_spec
-            max_size = 20
-            name_len = len(name)
+            max_size = 20 - 1
+            # print(len(str(self.name)))
+            name_len = len(str(self.name))
             typ_len = len(str(self.typ))
 
-            spaces = 20 - nem_len - typ_len
+            spaces = max_size - name_len - typ_len
 
-            result = format_spec.replace("%n", str(self.name))
-
-
+            result = format_spec.replace("%n", str(self.name) + "".join([" " for i in range(spaces)]))
 
             result = result.replace("%t", str(self.typ))
             result = result.replace("%%", "%")
-            return result
+            return result.format()
 
 class StaticChecker(ASTVisitor):
     def get_global_scope(self, scope):
@@ -119,12 +118,28 @@ class StaticChecker(ASTVisitor):
         return scope[0]
 
     def add_new_scope(self, scope):
-        return [] + scope[1:]
+        return [] + [scope]
 
     def add_new_struct(self, name, scope):
         size = len(scope)
 
         return scope[0:size-1] + [[[Symbol(name, "StructDecl")] + self.get_struct_namespace(scope)] + [self.get_func_namespace(scope)]]
+
+    def add_new_func(self, name, scope):
+        size = len(scope)
+
+        return scope[0:size-1] + [[[self.get_struct_namespace(scope)] + [Symbol(name, "FuncDecl")] + self.get_func_namespace(scope)]]
+
+    def add_name(self, name, scope):
+        size = len(scope)
+
+        return scope[0:size-1] + scope[1:]
+
+    def add_new_var(self, name, typ, scope):
+        next_scope = get_next_scope(scope)
+        next_scope += [Symbol(name, typ)]
+
+        return next_scope + scope[1:]
 
     def remove_next_scope(self, scope):
         return scope[1:]
@@ -167,86 +182,147 @@ class StaticChecker(ASTVisitor):
     def check_program(self, ast):
         return self.visit(ast)
 
-    def check_redeclared(self, kind, name, scope):
-        if(any([True for nm in scope if name == nm])):
-            raise Redeclared(kine, name)
+    def check_redeclared(self, kind, name, local_scope):
+        if(any([True for nm in local_scope if name == nm])):
+            raise Redeclared(kind, name)
 
     def visit_program(self, node: "Program", o: Any = None):
         o = reduce(lambda y, x: self.visit(x, y), node.decls, [[[],[]]])
 
     def visit_struct_decl(self, node: "StructDecl", o: Any = None):
-        self.check_redeclared("Struct", node.name, self.get_struct_namespace(o))
+        self.check_redeclared("Struct", node.name, o)
         o = self.add_new_struct(node.name, o)
-        self.print_scope(o)
-        raise Redeclared('lmao', 'lmao')
+        # self.print_scope(o)
 
         o = self.add_new_scope(o)
+        o = reduce(lambda y, x: self.visit(x, y), node.members, o)
+        o = self.remove_next_scope(o)
 
-        o = reduce(lambda y, x: self.visit(x, y), node.members)
-
-        pass
+        return o
 
     def visit_member_decl(self, node: "MemberDecl", o: Any = None):
-        pass
+        self.check_redeclared("Member", node.name, self.get_next_scope(o))
+        o = add_new_var(node.name, "MemberStruct", o)
+
+        return o
 
     def visit_func_decl(self, node: "FuncDecl", o: Any = None):
-        pass
+        self.check_redeclared("Function", node.name, self.get_func_namespace(o))
+
+        o = self.add_new_func(node.name, o)
+        # self.print_scope(o)
+
+        o = self.add_new_scope(o)
+        o = reduce(lambda y, x: self.visit(x, y), node.param, o)
+        o = self.visit(node.body, o)
+
+        o = self.remove_next_scope(o)
+
+        return o
 
     def visit_param(self, node: "Param", o: Any = None):
-        pass
+        self.check_redeclared("Parameter", node.name, self.get_next_scope(o))
+
+        o = add_new_var(node.name, node.param_type, o)
+
+        return o
 
     # Type system
     def visit_int_type(self, node: "IntType", o: Any = None):
-        pass
+        return node
 
     def visit_float_type(self, node: "FloatType", o: Any = None):
-        pass
+        return node
 
     def visit_string_type(self, node: "StringType", o: Any = None):
-        pass
+        return node
 
     def visit_void_type(self, node: "VoidType", o: Any = None):
-        pass
+        return node
 
     def visit_struct_type(self, node: "StructType", o: Any = None):
-        pass
+        return node
 
     # Statements
     def visit_block_stmt(self, node: "BlockStmt", o: Any = None):
-        pass
+        o = reduce(lambda y, x: self.visit(x, y), node.statements, o)
+
+        return o
 
     def visit_var_decl(self, node: "VarDecl", o: Any = None):
-        pass
+        self.check_redeclared("Variable", node.name, self.get_next_scope(o))
+
+        o = self.add_new_var(node.name, node.var_type, o)
+
+        return o
 
     def visit_if_stmt(self, node: "IfStmt", o: Any = None):
-        pass
+        o = self.visit(node.condition, o)
+        o = self.visit(node.then_stmt, o)
+        o = self.visit(node.else_stmt, o) if node.else_stmt
+
+        return o
 
     def visit_while_stmt(self, node: "WhileStmt", o: Any = None):
-        pass
+        o = self.visit(node.condition, o)
+
+        o = self.add_new_scope(o)
+        o = self.add_new_var("While", None, o)
+        o = self.visit(node.body, o)
+
+        return o
 
     def visit_for_stmt(self, node: "ForStmt", o: Any = None):
-        pass
+        o = self.visit(node.init, o) if node.init
+        o = self.visit(node.condition, o)
+        o = self.visit(node.update, o) if node.update
+        o = self.add_new_scope(o)
+        o = self.add_name("For", None, o)
+        o = self.visit(node.body, o)
+
+        return o
 
     def visit_switch_stmt(self, node: "SwitchStmt", o: Any = None):
-        pass
+        o = self.add_new_scope(o)
+        o = self.add_name("Switch", None, o)
+        o = self.visit(node.expr)
+        o = reduce(lambda y, x: self.visit(x, y), node.cases, o)
+        o = self.visit(node.default_case) if node.default_case
+
+        return o
 
     def visit_case_stmt(self, node: "CaseStmt", o: Any = None):
-        pass
+        o = self.visit(node.expr)
+        o = reduce(lambda y, x: self.visit(x, y), node.statements, o)
+
+        return o
 
     def visit_default_stmt(self, node: "DefaultStmt", o: Any = None):
-        pass
+        o = reduce(lambda y, x: self.visit(x, y), node.statements, o)
+
+        return o
 
     def visit_break_stmt(self, node: "BreakStmt", o: Any = None):
-        pass
+        local_scope = get_next_scope(o)
+
+        if local_scope[0] not in ["Switch", "For", "While"]:
+            raise MustInLoop("break")
+
+        return o
 
     def visit_continue_stmt(self, node: "ContinueStmt", o: Any = None):
-        pass
+        local_scope = get_next_scope(o)
+
+        if local_scope[0] not in ["Switch", "For", "While"]:
+            raise MustInLoop("continue")
+
+        return o
 
     def visit_return_stmt(self, node: "ReturnStmt", o: Any = None):
-        pass
+        return o
 
     def visit_expr_stmt(self, node: "ExprStmt", o: Any = None):
-        pass
+        return self.visit(node.expr, o)
 
     # Expressions
     def visit_binary_op(self, node: "BinaryOp", o: Any = None):
@@ -275,10 +351,10 @@ class StaticChecker(ASTVisitor):
 
     # Literals
     def visit_int_literal(self, node: "IntLiteral", o: Any = None):
-        pass
+        return node
 
     def visit_float_literal(self, node: "FloatLiteral", o: Any = None):
-        pass
+        return node
 
     def visit_string_literal(self, node: "StringLiteral", o: Any = None):
-        pass
+        return node

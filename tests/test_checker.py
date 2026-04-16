@@ -106,3 +106,35 @@ void main() {
 """
     expected = "Static checking passed"
     assert Checker(source).check_from_source() == expected
+
+def test_006():
+    """Test valid program with struct"""
+    source = """
+struct Point {
+    int x;
+    int y;
+};
+
+struct Vector2 {
+    int x;
+    int y;
+};
+void main() {
+    Point p;
+    p.x = 10;
+    p.y = 20;
+}
+"""
+    expected = "Static checking passed"
+    assert Checker(source).check_from_source() == expected
+
+def redeclared_test_001():
+    """Test valid program with struct"""
+    source = """
+struct Point {
+    int x;
+    int x;
+};
+"""
+    expected = "Static checking passed"
+    assert Checker(source).check_from_source() == expected

@@ -1,4 +1,4 @@
-# Generated from D:/DH/HK252/BTL_PPL-3/src/grammar/TyC.g4 by ANTLR 4.13.2
+# Generated from D:/DH/HK252/BTL_PPL 3/src/grammar/TyC.g4 by ANTLR 4.13.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO

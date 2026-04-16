@@ -142,6 +142,7 @@ class TyCBuilder:
                     capture_output=True,
                     check=False,
                 )
+
                 if result.returncode == 0:
                     return f"py -{self.python_version}"
             except:
@@ -625,9 +626,8 @@ class TyCBuilder:
 
             print(self.colors.yellow("Running semantic checker tests..."))
             checker_report_dir = self.report_dir / "checker"
-            if checker_report_dir.exists():
-                shutil.rmtree(checker_report_dir)
-            self.report_dir.mkdir(exist_ok=True)
+            if not checker_report_dir.exists():
+                self.report_dir.mkdir(exist_ok=True)
 
             env = os.environ.copy()
             env["PYTHONPATH"] = str(self.root_dir)
