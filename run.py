@@ -614,7 +614,7 @@ class TyCBuilder:
         watch_kwargs = {'watch': False}
         self.watch(target = self.test_ast, files = watch_files, watch_kwargs = watch_kwargs, constant_check = False, force_close = True)
 
-    def test_checker(self):
+    def test_checker(self, watch = False, **kwargs):
         """Run static semantic checker tests (Assignment 3)."""
         if not self.build_dir.exists():
             print(

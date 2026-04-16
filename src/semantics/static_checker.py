@@ -75,12 +75,62 @@ from .static_error import (
     MustInLoop,
 )
 
+class Symbol():
+    def __init__(self, name: str, typ):
+        self.name = name
+        self.typ = typ
+    
+    def __str__(self):
+        print(self.typ.__str__())
+        return f"{self.name}({str(self.typ)})"
+    
+    def __repr__(self):
+        return self.__str__()
 
 class StaticChecker(ASTVisitor):
+    def get_global_scope(self, scope):
+        return scope[len(scope) - 1]
+
+    def get_struct_namespace(self, scope):
+        return self.get_global_scope(scope)[0]
+
+    def get_func_namespace(self, scope):
+        return self.get_global_scope(scope)[1]
+
+    def get_next_scope(self, scope):
+        return scope[0]
+
+    def add_new_scope(self, scope):
+        return [] + scope[1:]
+
+    def add_new_struct(self, name, scope):
+        size = len(scope)
+
+        return scope[0:size-1] + [[[Symbol(name, "StructDecl")] + self.get_struct_namespace(scope)] + [self.get_func_namespace(scope)]]
+
+    def remove_next_scope(self, scope):
+        return scope[1:]
+
+    def check_program(self, ast):
+        return self.visit(ast)
+
+    def check_redeclared(self, kind, name, scope):
+        if(any([True for nm in scope if name == nm])):
+            raise Redeclared(kine, name)
+
     def visit_program(self, node: "Program", o: Any = None):
-        pass
+        o = reduce(lambda y, x: self.visit(x, y), node.decls, [[[],[]]])
 
     def visit_struct_decl(self, node: "StructDecl", o: Any = None):
+        self.check_redeclared("Struct", node.name, self.get_struct_namespace(o))
+        o = self.add_new_struct(node.name, o)
+        print(o)
+        raise Redeclared('lmao', 'lmao')
+
+        o = self.add_new_scope(o)
+
+        o = reduce(lambda y, x: self.visit(x, y), node.members)
+
         pass
 
     def visit_member_decl(self, node: "MemberDecl", o: Any = None):
