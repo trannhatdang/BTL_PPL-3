@@ -122,15 +122,15 @@ class StaticChecker(ASTVisitor):
 
     def add_new_struct(self, name, scope):
         size = len(scope)
-        # print(scope[0:size-2] + [[[Symbol(name, "StructDecl")]] + scope[size-2]] + [scope[size-1]])
+        print(scope[0:size-2] + [[[Symbol(name, "StructDecl")]] + scope[size-2]] + [scope[size-1]])
 
-        return [scope[0:size-2]] + [[[Symbol(name, "StructDecl")]] + scope[size-2]] + [scope[size-1]]
+        return scope[0:size-2] + [[[Symbol(name, "StructDecl")]] + scope[size-2]] + [scope[size-1]]
 
     def add_new_func(self, name, scope):
         size = len(scope)
         # print(scope[0:size-1] + [[Symbol(name, "FuncDecl")] + scope[size-1]])
 
-        return [scope[0:size-1]] + [[Symbol(name, "FuncDecl")] + scope[size-1]]
+        return scope[0:size-1] + [[Symbol(name, "FuncDecl")] + scope[size-1]]
 
     def add_name(self, name, scope):
         return [scope[0] + [name]] + scope[1:]
@@ -143,9 +143,9 @@ class StaticChecker(ASTVisitor):
 
     def add_new_struct_mem(self, name, typ, scope):
         size = len(scope)
-        # print(scope[0:size-2] + [[scope[size-2][0] + [Symbol(name, typ)]] + scope[size-2][1:]] + [scope[size-1]])
+        print(scope[0:size-2] + [[scope[size-2][0] + [Symbol(name, typ)]] + [scope[size-2][1:]]] + [scope[size-1]])
 
-        return [scope[0:size-2]] + [[scope[size-2][0] + [Symbol(name, typ)]] + scope[size-2][1:]] + [scope[size-1]]
+        return scope[0:size-2] + [[scope[size-2][0] + [Symbol(name, typ)]] + [scope[size-2][1:]]] + [scope[size-1]]
 
     def remove_next_scope(self, scope):
         return scope[1:]
@@ -221,7 +221,7 @@ class StaticChecker(ASTVisitor):
     def visit_struct_decl(self, node: "StructDecl", o: Any = None):
         self.check_struct_redeclared(node.name, o)
         o = self.add_new_struct(node.name, o)
-        self.print_scope(o)
+        # print(o)
 
         o = reduce(lambda y, x: self.visit(x, y), node.members, o)
 

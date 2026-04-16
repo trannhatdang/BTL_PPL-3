@@ -644,7 +644,8 @@ class TyCBuilder:
                     f"--html={checker_report_dir}/{curr_time}.html",
                     "--timeout=10",
                     "--self-contained-html",
-                    "-v",
+                    "-vv",
+                    "-l",
                 ],
                 check=False,
             )
