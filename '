@@ -90,18 +90,8 @@ class Symbol():
         if format_spec == "":
             return str(self)
         else:
-            # result = format_spec
-            max_size = 20
-            name_len = len(name)
-            typ_len = len(str(self.typ))
-
-            spaces = 20 - nem_len - typ_len
-
-            result = format_spec.replace("%n", str(self.name))
-
-
-
-            result = result.replace("%t", str(self.typ))
+            result = format_spec.replace("%t", str(self.name)) # stringify your int
+            result = result.replace("%t", str(self.type)) # symbol instead class name
             result = result.replace("%%", "%")
             return result
 
@@ -156,12 +146,13 @@ class StaticChecker(ASTVisitor):
     def print_local_scope(self, scope):
         centering = "{:^34}"
 
-        txt = "=={:%n %t}=="
+        txt = "=={:<10%n}{:<10%t}=="
+        txt = centering.format(txt)
 
         small_scope_seperator = centering.format("========================")
         print()
         print(small_scope_seperator)
-        list(map(lambda x: print(centering.format(txt.format(x))), scope))
+        list(map(lambda x: print(txt.format(x)), scope))
         print(small_scope_seperator)
 
     def check_program(self, ast):

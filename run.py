@@ -446,7 +446,7 @@ class TyCBuilder:
         print(self.colors.green("Cleaned build directories."))
         self.clean_cache()
 
-    def test_lexer(self, watch = False, check = True, ui = False, **kwargs):
+    def test_lexer(self, watch = False, check = True, **kwargs):
         """Run lexer tests."""
         grammar_files = list((self.root_dir / "src" / "grammar").glob("*.g4"))
         if not watch: 
@@ -498,13 +498,13 @@ class TyCBuilder:
 
             return
 
-        watch_kwargs = {"watch": False, "check": False, "ui": ui}
+        watch_kwargs = {"watch": False, "check": False}
         watch_files = ['tests\\test_lexer.py']
         watch_files.extend(grammar_files)
 
         self.watch(target = self.test_lexer, files = watch_files, watch_kwargs = watch_kwargs)
 
-    def test_parser(self, check = True, watch = False, ui = False, rebuild_grammar = True, **kwargs):
+    def test_parser(self, check = True, watch = False, rebuild_grammar = True, **kwargs):
         """Run parser tests."""
         grammar_files = list((self.root_dir / "src" / "grammar").glob("*.g4"))
 
@@ -556,7 +556,7 @@ class TyCBuilder:
 
             return
 
-        watch_kwargs = {"watch": False, "check": False, "ui": ui}
+        watch_kwargs = {"watch": False, "check": False}
         watch_files = ["tests\\test_parser.py"]
         watch_files.extend(grammar_files)
 
@@ -616,41 +616,61 @@ class TyCBuilder:
 
     def test_checker(self, watch = False, **kwargs):
         """Run static semantic checker tests (Assignment 3)."""
-        if not self.build_dir.exists():
+        if not watch:
+            if not self.build_dir.exists():
+                print(
+                    self.colors.yellow("Build directory not found. Running build first...")
+                )
+                self.build_grammar()
+
+            print(self.colors.yellow("Running semantic checker tests..."))
+            checker_report_dir = self.report_dir / "checker"
+            if checker_report_dir.exists():
+                shutil.rmtree(checker_report_dir)
+            self.report_dir.mkdir(exist_ok=True)
+
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(self.root_dir)
+
+            curr_time = datetime.datetime
+            curr_time = str(curr_time.now().strftime('%Y-%m-%d %H-%M-%S'))
+
+            self.run_command(
+                [
+                    str(self.venv_python3),
+                    "-m",
+                    "pytest",
+                    "tests/test_checker.py",
+                    f"--html={checker_report_dir}/{curr_time}.html",
+                    "--timeout=10",
+                    "--self-contained-html",
+                    "-v",
+                ],
+                check=False,
+            )
+
             print(
-                self.colors.yellow("Build directory not found. Running build first...")
+                self.colors.green(
+                    f"Checker tests completed. Reports at {checker_report_dir}/index.html"
+                )
             )
-            self.build_grammar()
+            self.clean_cache()
+            test_dir = str(self.root_dir / "tests" / "test_ast_gen.py")
 
-        print(self.colors.yellow("Running semantic checker tests..."))
-        checker_report_dir = self.report_dir / "checker"
-        if checker_report_dir.exists():
-            shutil.rmtree(checker_report_dir)
-        self.report_dir.mkdir(exist_ok=True)
+            # Submissions Folder
+            # sub3_dir = self.root_dir / "submissions" / "ass_3"
+            # if not sub3_dir.exists():
+            #     sub3_dir.mkdir(parents = True, exist_ok=True)
+            #
+            # shutil.copy3(test_dir, sub2_dir)
+            return
 
-        env = os.environ.copy()
-        env["PYTHONPATH"] = str(self.root_dir)
+        watch_files = [self.root_dir / "src" / "grammar" / "TyC.g4", 
+                       self.root_dir / "src" / "semantics" / "static_checker.py", 
+                       self.root_dir / "tests" / "test_checker.py"]
 
-        self.run_command(
-            [
-                str(self.venv_python3),
-                "-m",
-                "pytest",
-                "tests/test_checker.py",
-                f"--html={checker_report_dir}/index.html",
-                "--timeout=10",
-                "--self-contained-html",
-                "-v",
-            ],
-            check=False,
-        )
-
-        print(
-            self.colors.green(
-                f"Checker tests completed. Reports at {checker_report_dir}/index.html"
-            )
-        )
-        self.clean_cache()
+        watch_kwargs = {'watch': False}
+        self.watch(target = self.test_checker, files = watch_files, watch_kwargs = watch_kwargs, constant_check = False, force_close = True)
 
     def test_gui(self, watch = False, ui = False, **kwargs):
         if not watch:
@@ -709,7 +729,7 @@ class TyCBuilder:
 
         watch_files = [self.root_dir / "java_tester" / "test.tyc", self.root_dir / "src" / "grammar" / "TyC.g4"]
 
-        watch_kwargs = {'watch': False, 'ui': ui}
+        watch_kwargs = {'watch': False}
         self.watch(target = self.test_gui, files = watch_files, watch_kwargs = watch_kwargs, constant_check = False, force_close = True)
 
     def test_all(self, watch = False, ui = False, parts = ['1', '2', '3', '4'], **kwargs):
@@ -739,7 +759,7 @@ class TyCBuilder:
             watch_files.append("tests/test_lexer.py")
             watch_files.append("tests/test_parser.py")
 
-        watch_kwargs = {'watch': False, 'ui': ui, 'parts': parts}
+        watch_kwargs = {'watch': False, 'parts': parts}
 
         self.watch(target = self.test_all, files = watch_files, watch_kwargs = watch_kwargs)
 
@@ -779,11 +799,6 @@ def main():
             )
 
     parser.add_argument(
-            "--ui",
-            action="store_true"
-            )
-
-    parser.add_argument(
             "--parts",
             nargs='*'
             )
@@ -811,7 +826,6 @@ def main():
 
     kwargs = {
             'watch': args.watch,
-            'ui': args.ui,
             'parts': args.parts
     }
 
