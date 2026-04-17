@@ -118,68 +118,76 @@ class StaticChecker(ASTVisitor):
         return self.get_struct_namespace(scope)[0]
 
     def add_new_scope(self, scope):
-        return [] + [scope]
+        return [[]] + scope
 
     def add_new_struct(self, name, scope):
         size = len(scope)
         # print(scope[0:size-2] + [[[Symbol(name, "StructDecl")]] + scope[size-2]] + [scope[size-1]])
 
-        return [scope[0:size-2]] + [[[Symbol(name, "StructDecl")]] + scope[size-2]] + [scope[size-1]]
+        return scope[0:size-2] + [[[Symbol(name, "StructDecl")]] + scope[size-2]] + [scope[size-1]]
 
     def add_new_func(self, name, scope):
         size = len(scope)
         # print(scope[0:size-1] + [[Symbol(name, "FuncDecl")] + scope[size-1]])
 
-        return [scope[0:size-1]] + [[Symbol(name, "FuncDecl")] + scope[size-1]]
+        return scope[0:size-1] + [[Symbol(name, "FuncDecl")] + scope[size-1]]
 
     def add_name(self, name, scope):
         return [scope[0] + [name]] + scope[1:]
 
     def add_new_var(self, name, typ, scope):
         next_scope = self.get_next_scope(scope)
-        next_scope += [Symbol(name, typ)]
+        # print([next_scope + [Symbol(name, typ)]] + scope[1:])
 
-        return next_scope + scope[1:]
+        return [next_scope + [Symbol(name, typ)]] + scope[1:]
 
     def add_new_struct_mem(self, name, typ, scope):
         size = len(scope)
         # print(scope[0:size-2] + [[scope[size-2][0] + [Symbol(name, typ)]] + scope[size-2][1:]] + [scope[size-1]])
 
-        return [scope[0:size-2]] + [[scope[size-2][0] + [Symbol(name, typ)]] + scope[size-2][1:]] + [scope[size-1]]
+        return scope[0:size-2] + [[scope[size-2][0] + [Symbol(name, typ)]] + scope[size-2][1:]] + [scope[size-1]]
 
     def remove_next_scope(self, scope):
         return scope[1:]
 
-    def print_scope(self, scope):
-        local_scopes = scope[0:len(scope)-1]
+    def print_scope(self, scope, action_name = "SOME ACTION"):
+
+        local_scopes = scope[0:len(scope)-2]
         struct_scope = self.get_struct_namespace(scope)
         func_scope = self.get_func_namespace(scope)
 
+        print_seperator = "======================================================"
         big_scope_seperator = "=================================="
         small_scope_seperator = "========================"
-
-        print(big_scope_seperator)
+        centering = "{:^34}"
         txt = "=={:^30}=="
+
+        print(print_seperator)
+        print(action_name)
+
+        print()
+        print(big_scope_seperator)
         print(txt.format("LOCAL SCOPES"))
         print(big_scope_seperator)
-        list(map(lambda x: self.print_scope_list(x), local_scopes))
+        list(map(lambda x: self.print_local_scope(x), local_scopes))
         print(big_scope_seperator)
 
         print()
         print(big_scope_seperator)
-        txt = "=={:^30}=="
         print(txt.format("STRUCT SCOPE"))
         print(big_scope_seperator)
-        list(map(lambda x: self.print_scope_list(x), struct_scope))
+        list(map(lambda x: self.print_local_scope(x), struct_scope))
         print(big_scope_seperator)
 
         print()
         print(big_scope_seperator)
-        txt = "=={:^30}=="
         print(txt.format("FUNC SCOPE"))
+        node_format = "=={:%n %t}=="
         print(big_scope_seperator)
-        list(map(lambda x: self.print_scope_list(x), func_scope))
+        list(map(lambda x: print(centering.format(node_format.format(x))), func_scope))
         print(big_scope_seperator)
+
+        print(print_seperator)
 
     def print_scope_list(self, scope):
         list(map(lambda x: self.print_local_scope(x), scope))
@@ -221,7 +229,6 @@ class StaticChecker(ASTVisitor):
     def visit_struct_decl(self, node: "StructDecl", o: Any = None):
         self.check_struct_redeclared(node.name, o)
         o = self.add_new_struct(node.name, o)
-        self.print_scope(o)
 
         o = reduce(lambda y, x: self.visit(x, y), node.members, o)
 
@@ -237,11 +244,11 @@ class StaticChecker(ASTVisitor):
         self.check_redeclared("Function", node.name, self.get_func_namespace(o))
 
         o = self.add_new_func(node.name, o)
-        # self.print_scope(o)
 
         o = self.add_new_scope(o)
         o = reduce(lambda y, x: self.visit(x, y), node.params, o)
         o = self.visit(node.body, o)
+        self.print_scope(o)
 
         o = self.remove_next_scope(o)
 
@@ -277,6 +284,7 @@ class StaticChecker(ASTVisitor):
         return o
 
     def visit_var_decl(self, node: "VarDecl", o: Any = None):
+        # print(o)
         self.check_redeclared("Variable", node.name, self.get_next_scope(o))
 
         o = self.add_new_var(node.name, node.var_type, o)
