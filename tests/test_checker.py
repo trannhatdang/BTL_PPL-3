@@ -128,13 +128,205 @@ void main() {
     expected = "Static checking passed"
     assert Checker(source).check_from_source() == expected
 
-def redeclared_test_001():
-    """Test valid program with struct"""
+#############REDECLARED################
+def test_redeclared_var_001():
+    source = """
+struct Point {
+    int x;
+    int x;
+};
+
+void main() {
+    int x;
+    int x;
+}
+"""
+    expected = "Redeclared(Member, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_var_002():
+    source = """
+struct Point {
+    int x;
+};
+
+void main() {
+    Point x;
+    Point x;
+}
+"""
+    expected = "Redeclared(Variable, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_var_003():
+    source = """
+void main() {
+    Point x;
+    int x;
+}
+"""
+    expected = "Redeclared(Variable, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_var_004():
+    source = """
+void main() {
+    string x;
+    int x;
+}
+"""
+    expected = "Redeclared(Variable, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_var_005():
+    source = """
+void main() {
+    float x;
+    int x;
+}
+"""
+    expected = "Redeclared(Variable, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_var_006():
+    source = """
+void main() {
+    int x;
+}
+
+void add(int x, int y) {
+    int x;
+}
+"""
+    expected = "Redeclared(Variable, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_var_007():
+    source = """
+void main() {
+    int x;
+}
+
+void add(int x, int y) {
+    float x;
+}
+"""
+    expected = "Redeclared(Variable, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_func_001():
+    source = """
+void main() {
+    float x;
+}
+
+void main() {
+    int x;
+}
+"""
+    expected = "Redeclared(Variable, add)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_func_001():
+    source = """
+void main() {
+    float x;
+}
+
+void add(int x, int y) {
+    return;
+}
+
+void add(float x, float y) {
+    return;
+}
+"""
+    expected = "Redeclared(Function, add)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_parameter_001():
+    source = """
+void main() {
+    float x;
+}
+
+void add(int x, int x) {
+    return;
+}
+"""
+    expected = "Redeclared(Parameter, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_parameter_002():
+    source = """
+void main() {
+    float x;
+}
+
+void add(int x, float x) {
+    return;
+}
+"""
+    expected = "Redeclared(Parameter, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_func_003():
+    source = """
+void main() {
+    float x;
+}
+
+void add(int x, float x) {
+    return;
+}
+"""
+    expected = "Redeclared(Parameter, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_struct_001():
+    source = """
+struct Point {
+    int x;
+    int x;
+};
+
+struct Point {
+    int x;
+};
+"""
+    expected = "Redeclared(Member, x)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_struct_002():
+    source = """
+struct Point {
+    int x;
+};
+
+struct Point {
+    float x;
+};
+"""
+    expected = "Redeclared(Struct, Point)"
+    assert Checker(source).check_from_source() == expected
+
+def test_redeclared_struct_mem_001():
     source = """
 struct Point {
     int x;
     int x;
 };
 """
-    expected = "Static checking passed"
+    expected = "Redeclared(Member, x)"
+    assert Checker(source).check_from_source() == expected
+
+
+#############UNDECLARED################
+def test_undeclared_001():
+    source = """
+void main() {
+    float x = a;
+}
+"""
+    expected = "UndeclaredIdentifier(x)"
     assert Checker(source).check_from_source() == expected
