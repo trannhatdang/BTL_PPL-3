@@ -656,7 +656,7 @@ class TyCBuilder:
                 )
             )
             self.clean_cache()
-            test_dir = str(self.root_dir / "tests" / "test_ast_gen.py")
+            # test_dir = str(self.root_dir / "tests" / "test_checker.py")
 
             # Submissions Folder
             # sub3_dir = self.root_dir / "submissions" / "ass_3"

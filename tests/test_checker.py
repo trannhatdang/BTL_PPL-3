@@ -138,7 +138,6 @@ struct Point {
 
 void main() {
     int x;
-    int x;
 }
 """
     expected = "Redeclared(Member, x)"

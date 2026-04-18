@@ -110,7 +110,7 @@ continue_stat: CONTINUE ';' ;
 return_stat: RETURN expr ';'
 	| RETURN ';' ;
 
-expr_stat: (expr | assign_expr) ';';
+expr_stat: expr ';';
 
 /*------------------------------------------------------------------------------------
 Expression*/
@@ -131,6 +131,7 @@ expr: '(' expr ')'
 	| expr (EQ_OP | NEQ_OP) expr
 	| expr (AND_OP) expr
 	| expr (OR_OP) expr
+	| <assoc=right> expr '=' expr
 ;
 
 assign_expr: (ID | assigned_expr '.' ID) '=' expr ;

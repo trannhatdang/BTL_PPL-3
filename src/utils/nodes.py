@@ -151,6 +151,7 @@ class Param(ASTNode):
 
 class Type(ASTNode):
     """Base class for type annotations."""
+
     pass
 
 

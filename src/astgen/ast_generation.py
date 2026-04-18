@@ -54,7 +54,7 @@ class ASTGeneration(TyCVisitor):
     # Visit a parse tree produced by TyCParser#func_decl.
     def visitFunc_decl(self, ctx:TyCParser.Func_declContext):
         return_type_ctx = ctx.return_type()
-        ID_ctx = ctx.ID()
+        ID_ctx = ctx.ID().getText() if ctx.ID() else None
         param_list_ctx = ctx.param_list()
         block_stat_ctx = ctx.block_stat()
 
@@ -88,7 +88,7 @@ class ASTGeneration(TyCVisitor):
     # Visit a parse tree produced by TyCParser#param.
     def visitParam(self, ctx:TyCParser.ParamContext):
         param_type_ctx = ctx.param_type()
-        ID_ctx = ctx.ID()
+        ID_ctx = ctx.ID().getText() if ctx.ID() else None
 
         param_type = self.visit(param_type_ctx)
         ID = ID_ctx
@@ -102,7 +102,7 @@ class ASTGeneration(TyCVisitor):
         int_type_ctx = ctx.INT_TYPE()
         float_type_ctx = ctx.FLOAT_TYPE()
         string_type_ctx = ctx.STRING_TYPE()
-        ID_type_ctx = ctx.ID()
+        ID_type_ctx = ctx.ID().getText() if ctx.ID() else None
 
         if int_type_ctx:
             return IntType()
@@ -129,7 +129,7 @@ class ASTGeneration(TyCVisitor):
 
     # Visit a parse tree produced by TyCParser#struct_decl.
     def visitStruct_decl(self, ctx:TyCParser.Struct_declContext):
-        ID_ctx = ctx.ID()
+        ID_ctx = ctx.ID().getText() if ctx.ID() else None
         struct_var_decl_list_ctx = ctx.struct_var_decl_list()
 
         ID = ID_ctx
@@ -160,7 +160,7 @@ class ASTGeneration(TyCVisitor):
     # Visit a parse tree produced by TyCParser#struct_var_decl_stat.
     def visitStruct_var_decl_stat(self, ctx:TyCParser.Struct_var_decl_statContext):
         struct_var_type_ctx = ctx.struct_var_type()
-        ID_ctx = ctx.ID()
+        ID_ctx = ctx.ID().getText() if ctx.ID() else None
 
         struct_var_type = self.visit(struct_var_type_ctx)
         ID = ID_ctx
@@ -184,7 +184,7 @@ class ASTGeneration(TyCVisitor):
         int_type_ctx = ctx.INT_TYPE()
         float_type_ctx = ctx.FLOAT_TYPE()
         string_type_ctx = ctx.STRING_TYPE()
-        ID_type_ctx = ctx.ID()
+        ID_type_ctx = ctx.ID().getText() if ctx.ID() else None
 
         if int_type_ctx:
             ret = IntType()
@@ -285,7 +285,7 @@ class ASTGeneration(TyCVisitor):
     # Visit a parse tree produced by TyCParser#var_decl_expr.
     def visitVar_decl_expr(self, ctx:TyCParser.Var_decl_exprContext):
         var_type_ctx = ctx.var_type()
-        ID_ctx = ctx.ID()
+        ID_ctx = ctx.ID().getText() if ctx.ID() else None
         expr_ctx = ctx.expr()
 
         var_type = self.visit(var_type_ctx)
@@ -302,7 +302,7 @@ class ASTGeneration(TyCVisitor):
         float_type_ctx = ctx.FLOAT_TYPE()
         string_type_ctx = ctx.STRING_TYPE()
         auto_type_ctx = ctx.AUTO()
-        ID_type_ctx = ctx.ID()
+        ID_type_ctx = ctx.ID().getText() if ctx.ID() else None
 
         if int_type_ctx:
             ret = IntType()
@@ -487,21 +487,17 @@ class ASTGeneration(TyCVisitor):
     # Visit a parse tree produced by TyCParser#expr_stat.
     def visitExpr_stat(self, ctx:TyCParser.Expr_statContext):
         expr_ctx = ctx.expr()
-        assign_expr_ctx = ctx.assign_expr()
 
         if expr_ctx:
             expr = self.visit(expr_ctx)
             return ExprStmt(expr)
-        else:
-            assign_expr = self.visit(assign_expr_ctx)
-            return ExprStmt(assign_expr)
 
     # Visit a parse tree produced by TyCParser#lvalue.
     def visitLvalue(self, ctx:TyCParser.LvalueContext):
         int_lit = ctx.INT()
         float_lit = ctx.FLOAT()
         string_lit = ctx.STRING()
-        id_lit = ctx.ID()
+        id_lit = ctx.ID().getText() if ctx.ID() else None
         struct_lit = ctx.struct_lit()
 
         if int_lit:
@@ -539,12 +535,16 @@ class ASTGeneration(TyCVisitor):
     def visitExpr(self, ctx:TyCParser.ExprContext):
         expr_ctx = ctx.expr()
 
-        if len(expr_ctx) == 2:
+        if len(expr_ctx) == 2 and ctx.children[1].getText() != '=':
             bin_op = ctx.children[1]
             l_expr = self.visit(expr_ctx[0])
             r_expr = self.visit(expr_ctx[1])
             # l_bin_expr = self.visit(ctx.l_bin_expr()):
             return BinaryOp(l_expr, bin_op, r_expr)
+        elif len(expr_ctx) == 2:
+            l_expr = self.visit(expr_ctx[0])
+            r_expr = self.visit(expr_ctx[1])
+            return AssignExpr(l_expr, r_expr)
 
         if len(expr_ctx) == 0:
             lvalue_ctx = ctx.lvalue()
@@ -567,7 +567,7 @@ class ASTGeneration(TyCVisitor):
         MEMACC_OP = ctx.MEMACC_OP()
 
         if MEMACC_OP:
-            ID = ctx.ID()
+            ID = ctx.ID().getText() if ctx.ID() else None
             return MemberAccess(expr, ID)
 
         post_op_ctx = ctx.post_op()
@@ -589,7 +589,7 @@ class ASTGeneration(TyCVisitor):
 
     # Visit a parse tree produced by TyCParser#assign_expr.
     def visitAssign_expr(self, ctx:TyCParser.Assign_exprContext):
-        ID = ctx.ID()
+        ID = ctx.ID().getText() if ctx.ID() else None
         expr = self.visit(ctx.expr())
         assigned_expr_ctx = ctx.assigned_expr()
 

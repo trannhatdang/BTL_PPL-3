@@ -1,35 +1,4 @@
 grammar TyC;
-
-@lexer::header {
-from lexererr import *
-}
-
-@lexer::members {
-def emit(self):
-	tk = self.type
-	if tk == self.UNCLOSE_STRING:
-		result = super().emit();
-		result.text = result.text[1:len(result.text):];
-		raise UncloseString(result.text);
-	elif tk == self.ILLEGAL_ESCAPE:
-		result = super().emit();
-		result.text = result.text[1:len(result.text):];
-		raise IllegalEscape(result.text);
-	elif tk == self.ERROR_CHAR:
-		result = super().emit();
-		raise ErrorToken(result.text);
-	elif tk == self.STRING:
-		result = super().emit();
-		result.text = result.text[1:len(result.text)-1:];
-		return result;
-	else:
-		return super().emit();
-}
-
-options{
-	language=Python3;
-}
-
 // TODO: Define grammar rules here
 
 /*------------------------------------------------------------------------------------
