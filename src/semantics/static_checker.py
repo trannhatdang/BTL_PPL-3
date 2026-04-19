@@ -673,7 +673,7 @@ class StaticChecker(ASTVisitor):
             raise TypeMismatchInExpression(node)
 
         if str(node.operator) in ['+', '-', '*', '/']:
-            if not self.infer(node, o):
+            if not self.binary_infer(node, o):
                 raise TypeCannotBeInferred(node)
 
             if self.check_same_type(lt, rt, IntType):
