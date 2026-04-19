@@ -81,12 +81,10 @@ class AssignStmt(Stmt):
         self.expr = expr
 
     def accept(self, visitor, o):
-        visitor.visit_assign_stmt(self, o)
+        return visitor.visit_assign_stmt(self, o)
 
-    def __str__():
+    def __str__(self):
         return f"ExprStmt({self.expr})"
-
-
 
 class Symbol():
     def __init__(self, name: str, typ, params = None):
@@ -397,7 +395,7 @@ class StaticChecker(ASTVisitor):
         if(len(struct_ret) <= 0):
             raise UndeclaredStruct(name)
 
-        member_ret = [member for member in struct if str(member.name) == (member_name)]
+        member_ret = [member for member in struct_ret[0] if str(member.name) == (member_name)]
 
         if len(member_ret) <= 0:
             return None
@@ -414,6 +412,7 @@ class StaticChecker(ASTVisitor):
         o = reduce(lambda y, x: self.visit(x, y), node.decls, [[],[]])
 
     def visit_struct_decl(self, node: "StructDecl", o: Any = None):
+
         self.check_redeclared_struct(node.name, o)
         o = self.add_new_struct(node.name, o)
 
@@ -432,7 +431,7 @@ class StaticChecker(ASTVisitor):
                 raise UndeclaredStruct(node.member_type.struct_name)
 
         # self.print_scope(o, "adding member decl")
-        o = self.add_new_struct_mem(node.name, "MemberStruct", o)
+        o = self.add_new_struct_mem(node.name, node.member_type, o)
 
         return o
 
@@ -605,33 +604,40 @@ class StaticChecker(ASTVisitor):
 
     def visit_expr_stmt(self, node: "ExprStmt", o: Any = None):
         if type(node.expr) is AssignExpr:
-            return self.visit(AssignStmt(node.expr), o)
+            o = self.visit(AssignStmt(node.expr), o)
+            print(o)
+            return o
 
-        self.visit(node.expr, o)
+        o = self.visit(node.expr, o)
         return o
 
     def visit_assign_stmt(self, node: "AssignStmt", o: Any = None):
-        lt = self.visit(node.lhs, o)
-        rt = self.visit(node.rhs, o)
+        lt = self.visit(node.expr.lhs, o)
+        rt = self.visit(node.expr.rhs, o)
 
         accepted_left_list = [Identifier, MemberAccess]
 
-        if type(node.lhs) not in accepted_left_list:
-            raise TypeMismatchInExpression(node)
+        if type(node.expr.lhs) not in accepted_left_list:
+            raise TypeMismatchInStatement(node)
 
         if type(rt) is list: #struct lit
              self.check_struct(lt, rt, node, o)
 
-             return lt
+             return o
 
-        lhs = node.lhs.name if type(node.lhs) is Identifier else ''
-        rhs = node.rhs.name if type(node.rhs) is Identifier else ''
+        lhs = node.expr.lhs.name if type(node.expr.lhs) is Identifier else ''
+        rhs = node.expr.rhs.name if type(node.expr.rhs) is Identifier else ''
 
         if not self.infer(lhs, rhs, lt, rt, self.get_local_scopes(o)):
             raise TypeCannotBeInferred(node)
 
+        lt = self.visit(node.expr.lhs, o)
+        rt = self.visit(node.expr.rhs, o)
+
         if not self.check_type(lt, rt):
             raise TypeMismatchInStatement(node)
+
+        self.print_scope(o, "assigning")
 
         return o
 
@@ -739,6 +745,9 @@ class StaticChecker(ASTVisitor):
         if not self.infer(lhs, rhs, lt, rt, self.get_local_scopes(o)):
             raise TypeCannotBeInferred(node)
 
+        lt = self.visit(node.lhs, o)
+        rt = self.visit(node.rhs, o)
+
         if not self.check_type(lt, rt):
             raise TypeMismatchInExpression(node)
 
@@ -756,6 +765,7 @@ class StaticChecker(ASTVisitor):
         if member is None:
             raise TypeMismatchInExpression(node)
 
+
         return member.typ
 
     def visit_func_call(self, node: "FuncCall", o: Any = None):
@@ -767,15 +777,15 @@ class StaticChecker(ASTVisitor):
         param_len = len(func.params)
         args_len = len(node.args)
 
-        args_sym_list = [self.visit(arg, o) for arg in node.args]
-
         if param_len != args_len:
             raise TypeMismatchInExpression(node)
 
-        if any([not self.check_type(args_sym_list[i].typ, func.params[i]) for i in range(param_len)]):
-            raise TypeMismatchInExpression(node)
+        [self.infer(node.args[i].name if isinstance(node.args[i], Identifier) else '', '', self.visit(node.args[i], o), func.params[i], self.get_local_scopes(o)) for i in range(param_len)]
 
-        [self.infer(args_sym_list[i].name, func.params[i].name, args_sym_list[i].typ, func.params[i].typ) for i in range(param_len)]
+        args_typ_list = [self.visit(arg, o) for arg in node.args]
+
+        if any([not self.check_type(args_typ_list[i], func.params[i]) for i in range(param_len)]):
+            raise TypeMismatchInExpression(node)
 
         return func.typ
 

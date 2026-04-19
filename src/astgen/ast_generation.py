@@ -59,7 +59,7 @@ class ASTGeneration(TyCVisitor):
         block_stat_ctx = ctx.block_stat()
 
         return_type = self.visit(return_type_ctx) if return_type_ctx else None
-        ID = ID_ctx
+        ID = str(ID_ctx)
         param_list = self.visit(param_list_ctx)
         block_stat = self.visit(block_stat_ctx)
 
@@ -91,7 +91,7 @@ class ASTGeneration(TyCVisitor):
         ID_ctx = ctx.ID().getText() if ctx.ID() else None
 
         param_type = self.visit(param_type_ctx)
-        ID = ID_ctx
+        ID = str(ID_ctx)
 
         ret = Param(param_type, ID)
 
@@ -132,7 +132,7 @@ class ASTGeneration(TyCVisitor):
         ID_ctx = ctx.ID().getText() if ctx.ID() else None
         struct_var_decl_list_ctx = ctx.struct_var_decl_list()
 
-        ID = ID_ctx
+        ID = str(ID_ctx)
         struct_var_decl_list = self.visit(struct_var_decl_list_ctx) if struct_var_decl_list_ctx else None
 
         ret = StructDecl(ID, struct_var_decl_list)
@@ -163,9 +163,9 @@ class ASTGeneration(TyCVisitor):
         ID_ctx = ctx.ID().getText() if ctx.ID() else None
 
         struct_var_type = self.visit(struct_var_type_ctx)
-        ID = ID_ctx
+        ID = str(ID_ctx)
 
-        ret = MemberDecl(struct_var_type, ID)
+        ret = MemberDecl(struct_var_type, str(ID))
 
         return ret
 
@@ -289,10 +289,10 @@ class ASTGeneration(TyCVisitor):
         expr_ctx = ctx.expr()
 
         var_type = self.visit(var_type_ctx)
-        ID = ID_ctx
+        ID = str(ID_ctx)
         expr = self.visit(expr_ctx) if expr_ctx else None
 
-        ret = VarDecl(var_type, ID, expr)
+        ret = VarDecl(var_type, str(ID), expr)
 
         return ret
 
@@ -509,7 +509,7 @@ class ASTGeneration(TyCVisitor):
         elif struct_lit:
             ret = self.visit(struct_lit)
         else:
-            ret = Identifier(id_lit)
+            ret = Identifier(str(id_lit))
 
         return ret
 
@@ -540,7 +540,7 @@ class ASTGeneration(TyCVisitor):
 
             ID = ctx.ID().getText() if ctx.ID() else None
 
-            return FuncCall(ID, arg_list)
+            return FuncCall(str(ID), arg_list)
 
         expr_ctx = ctx.expr()
 
@@ -574,7 +574,7 @@ class ASTGeneration(TyCVisitor):
 
         if MEMACC_OP:
             ID = ctx.ID().getText() if ctx.ID() else None
-            return MemberAccess(expr, ID)
+            return MemberAccess(expr, str(ID))
 
         post_op_ctx = ctx.post_op()
 
@@ -601,7 +601,7 @@ class ASTGeneration(TyCVisitor):
 
         if assigned_expr_ctx:
             assigned_expr = self.visit(assigned_expr_ctx)
-            mem_acc = MemberAccess(assigned_expr, ID)
+            mem_acc = MemberAccess(assigned_expr, str(ID))
 
             return AssignExpr(mem_acc, expr)
 
