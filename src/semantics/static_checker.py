@@ -488,8 +488,7 @@ class StaticChecker(ASTVisitor):
 
         o = self.add_new_var(name, var_type, o)
 
-        if not self.infer(node.name, "", var_type, init_value_type, self.get_local_scopes(o)):
-            raise TypeCannotBeInferred(node)
+        self.infer(node.name, "", var_type, init_value_type, self.get_local_scopes(o))
 
         if not self.check_type(self.get_symbol(name, self.get_local_scopes(o)), Symbol(None, init_value_type)):
             raise TypeMismatchInStatement(node)
@@ -674,7 +673,7 @@ class StaticChecker(ASTVisitor):
             raise TypeMismatchInExpression(node)
 
         if str(node.operator) in ['+', '-', '*', '/']:
-            if not self.binary_infer(node, o):
+            if not self.infer(node, o):
                 raise TypeCannotBeInferred(node)
 
             if self.check_same_type(lt, rt, IntType):

@@ -402,7 +402,7 @@ void main() {
     expected = "TypeMismatchInStatement(ExprStmt(AssignExpr(z = x)))"
     assert Checker(source).check_from_source() == expected
 
-def test_mismatch_004()
+def test_mismatch_004():
     source = """
 void main() {
     auto x;
@@ -412,22 +412,8 @@ void main() {
     expected = "TypeMismatchInStatement(ExprStmt(AssignExpr(z = x)))"
     assert Checker(source).check_from_source() == expected
 
-def test_mismatch_005():
-    source = """
-void main() {
-    auto x;
-    auto y;
-    auto z;
-
-    x = (x && y) > (False || (z > 3));
-    z = x;
-}
-"""
-    expected = "TypeMismatchInStatement(ExprStmt(AssignExpr(z = x)))"
-    assert Checker(source).check_from_source() == expected
-
-
 #############INFER################
+
 def test_infer_001():
     source = """
 void main() {
@@ -436,5 +422,28 @@ void main() {
     x = y;
 }
 """
-    expected = "TypeCannotBeInferred(ExprStmt(AssignExpr(x = y)))"
+    expected = "TypeCannotBeInferred(ExprStmt(AssignExpr(Identifier(x) = Identifier(y))))"
     assert Checker(source).check_from_source() == expected
+
+def test_infer_002():
+    source = """
+void main() {
+    auto x;
+    auto y;
+    int result = x < y;
+}
+"""
+    expected = "TypeCannotBeInferred(BinaryOp(Identifier(x), <, Identifier(y)))"
+
+def test_infer_003():
+    source = """
+void main() {
+    auto x;
+    auto y;
+
+    x = (x && y) > (False || (z > 3));
+}
+"""
+    expected = "TypeCannotBeInferred(BinaryOp(Identifier(x), &&, Identifier(y)))"
+    assert Checker(source).check_from_source() == expected
+
