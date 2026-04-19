@@ -726,3 +726,8 @@ def test_stress_3():
     source = "void main() { result = (a.b + foo(c, d.e)) * -(x - y); }"
     expected = "Program([FuncDecl(VoidType(), main, [], [ExprStmt(AssignExpr(Identifier(result) = BinaryOp(BinaryOp(MemberAccess(Identifier(a).b), +, FuncCall(foo, [Identifier(c), MemberAccess(Identifier(d).e)])), *, PrefixOp(-BinaryOp(Identifier(x), -, Identifier(y))))))])])"
     assert str(ASTGenerator(source).generate()) == expected
+
+def test_stress_4():
+    source = "void main() { result = x; } struct Point { int x; int y; };"
+    expected = "Program([FuncDecl(VoidType(), main, [], [ExprStmt(AssignExpr(Identifier(result) = Identifier(x)))]), StructDecl(Point, [MemberDecl(IntType(), x), MemberDecl(IntType(), y)])])"
+    assert str(ASTGenerator(source).generate()) == expected
