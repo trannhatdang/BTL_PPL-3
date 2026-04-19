@@ -128,6 +128,43 @@ void main() {
     expected = "Static checking passed"
     assert Checker(source).check_from_source() == expected
 
+#############EXAMPLES##################
+def ex_test_001():
+    source = """
+void main() {
+    auto x;
+    auto y;
+    auto z = x + y;
+}
+"""
+    expected = "TypeCannotBeInferred(BinaryOp(Identifier(x), +, Identifier(y)))"
+    assert Checker(source).check_from_source() == expected
+
+def ex_test_002():
+    source = """
+void main() {
+    int sum = unknown(5, 3);
+}
+"""
+    expected = "UndeclaredFunction(unknown)"
+    assert Checker(source).check_from_source() == expected
+
+def ex_test_003():
+    source = """
+struct Point {
+    int x;
+    int y;
+}
+
+void main() {
+    Point p;
+    p.x = 10;
+    p.y = 20;
+}
+"""
+    expected = "Static checking passed"
+    assert Checker(source).check_from_source() == expected
+
 #############REDECLARED################
 def test_redeclared_var_001():
     source = """
@@ -327,5 +364,5 @@ void main() {
     float x = a;
 }
 """
-    expected = "UndeclaredIdentifier(x)"
+    expected = "UndeclaredIdentifier(a)"
     assert Checker(source).check_from_source() == expected

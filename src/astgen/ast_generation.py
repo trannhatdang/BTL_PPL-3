@@ -533,16 +533,29 @@ class ASTGeneration(TyCVisitor):
 
     # Visit a parse tree produced by TyCParser#expr.
     def visitExpr(self, ctx:TyCParser.ExprContext):
+        if ctx.arg_list() and ctx.LROUND_BRACK():
+            arg_list_ctx = ctx.arg_list()
+            arg_list = self.visit(arg_list_ctx) if arg_list_ctx else None
+            LROUND_BRACK = ctx.LROUND_BRACK()
+
+            ID = ctx.ID().getText() if ctx.ID() else None
+
+            return FuncCall(ID, arg_list)
+
         expr_ctx = ctx.expr()
 
         if len(expr_ctx) == 2 and ctx.children[1].getText() != '=':
-            bin_op = ctx.children[1]
+            bin_op = ctx.children[1].getText()
             l_expr = self.visit(expr_ctx[0])
             r_expr = self.visit(expr_ctx[1])
             # l_bin_expr = self.visit(ctx.l_bin_expr()):
             return BinaryOp(l_expr, bin_op, r_expr)
         elif len(expr_ctx) == 2:
             l_expr = self.visit(expr_ctx[0])
+
+            if ctx.ID():
+                l_expr = MemberAccess(l_expr, ctx.ID().getText())
+
             r_expr = self.visit(expr_ctx[1])
             return AssignExpr(l_expr, r_expr)
 
@@ -552,16 +565,9 @@ class ASTGeneration(TyCVisitor):
             return self.visit(lvalue_ctx)
 
         expr_ctx = expr_ctx[0]
-
-        arg_list_ctx = ctx.arg_list()
-
         expr = self.visit(expr_ctx)
-        arg_list = self.visit(arg_list_ctx) if arg_list_ctx else None
-        LROUND_BRACK = ctx.LROUND_BRACK()
 
-        if LROUND_BRACK is not None and arg_list is not None:
-            return FuncCall(expr, arg_list)
-        elif LROUND_BRACK:
+        if ctx.LROUND_BRACK():
             return self.visit(expr_ctx)
 
         MEMACC_OP = ctx.MEMACC_OP()

@@ -78,6 +78,7 @@ from .static_error import (
 class AssignStmt(Stmt):
     def __init__(self, expr : Expr):
         super().__init__()
+        self.expr = expr
 
     def accept(self, visitor, o):
         visitor.visit_assign_stmt(self, o)
@@ -88,7 +89,7 @@ class AssignStmt(Stmt):
 
 
 class Symbol():
-    def __init__(self, name: str, typ, value, params = None):
+    def __init__(self, name: str, typ, params = None):
         self.name = name
         self.typ = typ
         self.params = params
@@ -113,6 +114,11 @@ class Symbol():
 
             result = format_spec.replace("%n", str(self.name) + "".join([" " for i in range(spaces)]))
 
+            typ_str = str(self.typ)
+
+            if self.params is not None:
+                typ_str += "".join([(str(param) + ', ') for param in self.params])
+
             result = result.replace("%t", str(self.typ))
             result = result.replace("%%", "%")
             return result.format()
@@ -131,6 +137,9 @@ class StaticChecker(ASTVisitor):
 
     def get_next_scope(self, scope):
         return scope[0]
+
+    def get_first_scope(self, scope):
+        return scope[len(scope) - 3]
 
     def get_next_struct(self, scope):
         return self.get_struct_namespace(scope)[0]
@@ -168,21 +177,25 @@ class StaticChecker(ASTVisitor):
     def remove_next_scope(self, scope):
         return scope[1:]
 
-    def infer_type(self, lhs, rhs):
-        return
+    def ass_type(self, name, typ, local_scope_list):
+        sym = self.get_symbol(name, local_scope_list)
 
-    def ass_type(self, lt, rt, local_scope_list):
-        # ret = [sym for scope in local_scope_list for sym in scope if str(name) == str(sym.name)]))
-        # ret = [sym for scope in local_scope_list for sym in scope if str(name) == str(sym.name)]))
+        if sym is not None:
+            sym.typ = typ
+            return typ
 
-        # if len(ret) > 0:
+    def infer(self, lhs, rhs, lt, rt, local_scope_list):
+        # l_sym = self.get_symbol(lhs)
+        # r_sym = self.get_symbol(rhs)
 
-        if lt is None or rt is None:
+        if lt is None and rt is None:
             return False
         elif lt is None:
-            lt = rt
-        else:
-            rt = lt
+            lt = self.ass_type(lhs, rt, local_scope_list)
+        elif rt is None:
+            rt = self.ass_type(rhs, lt, local_scope_list)
+        elif lt is rt:
+            return True
 
         return True
 
@@ -291,41 +304,61 @@ class StaticChecker(ASTVisitor):
         if(any([True for member in struct_scope[1:] if str(name) == str(member.name)])):
             raise Redeclared("Member", name)
 
-    def check_struct(self, ls, rs):
+    def check_same_struct_list(self, ls, rs):
         l_size = len(ls)
         r_size = len(rs)
 
         if(l_size != r_size):
             return False
 
-        if(any([True for i in range(l_size) if type(ls[i].typ) is not type(rt[i].typ)])):
-            return False
+        return not any([True for i in range(l_size) if type(ls[i].typ) is not type(rs[i].typ)])
 
-        return True
+    def check_struct(self, lt, rs, node, scope):
+        if lt is None: #lt auto
+            struct_namespace = self.get_struct_namespace(scope)
+            possible_struct_list = [struct for struct in struct_namespace if self.check_same_struct_list(struct[1:], rs)]
+            possible_struct_list_size = len(possible_struct_list)
+
+            if possible_struct_list_size == 0 or possible_struct_list_size >= 2:
+                raise TypeCannotBeInferred(node)
+            else:
+                lt = StructType(struct[0].name)
+                return lt
+
+        ls = self.get_struct_member_list(lt.struct_name, self.get_struct_namespace(scope))
+
+        l_size = len(ls)
+        r_size = len(rs)
+
+        if(l_size != r_size):
+            raise TypeMismatchInExpression(node)
+
+        if(any([True for i in range(l_size) if type(ls[i].typ) is not type(rs[i].typ)])):
+            raise TypeMismatchInExpression(node)
+
+        return lt
 
     def check_type(self, lt, rt):
-        if type(lt) is list and type(rt) is not list or type(lt) is not list and type(rt) is list:
-            return False
-
-        if type(lt) is list:
-            self.check_struct(lt, rt)
-
         if lt is None or rt is None:
             return True
         else:
             return type(lt) == type(rt)
 
     def check_same_type(self, lt, rt, typ):
+        if type(lt) is not typ or type(rt) is not typ:
+            return True
+
         if type(lt) is typ and type(rt) is typ:
             return True
 
         return False
 
     def get_symbol(self, name, local_scope_list):
-        ret = [True for scope in local_scope_list for nm in scope if str(name) == str(nm.name)]
+        ret = [sym for scope in local_scope_list for sym in scope if str(name) == str(sym.name)]
 
         if(len(ret) <= 0):
-            raise UndeclaredIdentifier(name)
+            return None
+            # raise UndeclaredIdentifier(name)
 
         return ret[0]
 
@@ -335,29 +368,41 @@ class StaticChecker(ASTVisitor):
         ret = [struct for struct in struct_namespace if str(name) == str(struct[0].name)]
 
         if(len(ret) <= 0):
-            raise UndeclaredStruct(name)
+            return None
+            # raise UndeclaredStruct(name)
 
         return ret[0]
 
-    def get_func(self, name, scope):
-        func_namespace = self.get_func_namespace(scope)
-
-        ret = [sym for sym in func_namespace if str(name) == str(sym.name)]
+    def get_func(self, name, func_namespace):
+        # print(name, func_namespace)
+        ret = [func for func in func_namespace if str(name) == str(func.name)]
 
         if(len(ret) <= 0):
-            raise UndeclaredFunction(name)
+            return None
+            # raise UndeclaredFunction(name)
 
         return ret[0]
 
     def get_struct_member_list(self, struct_name, struct_name_space):
-        struct = next(iter([struct for struct in struct_namespace if str(struct[0].name) == str(struct_name)]))
+        struct_ret = [struct for struct in struct_namespace if str(struct[0].name) == str(struct_name)]
 
-        return struct[1:]
+        if(len(struct_ret) <= 0):
+            raise UndeclaredStruct(name)
+
+        return struct_ret[1:]
 
     def get_struct_member(self, struct_name, member_name, struct_namespace):
-        struct = next(iter([struct for struct in struct_namespace if str(struct[0].name) == str(struct_name)]))
+        struct_ret = [struct for struct in struct_namespace if str(struct[0].name) == str(struct_name)]
 
-        return next(iter([member for member in struct if str(member.name) == (member_name)]))
+        if(len(struct_ret) <= 0):
+            raise UndeclaredStruct(name)
+
+        member_ret = [member for member in struct if str(member.name) == (member_name)]
+
+        if len(member_ret) <= 0:
+            return None
+
+        return next(iter(member_ret))
 
     # def get_member(self, member_name, struct_name, scope):
     #     struct_namespace = self.get_struct_namespace(scope)
@@ -395,9 +440,10 @@ class StaticChecker(ASTVisitor):
         self.check_redeclared_func(node.name, o)
         params = [param.param_type for param in node.params]
 
-        o = self.add_new_func(node.name, node.typ, params, o)
+        o = self.add_new_func(node.name, node.return_type, params, o)
 
         o = self.add_new_scope(o)
+        o = self.add_new_var(node.name, "FuncDecl", o)
         o = reduce(lambda y, x: self.visit(x, y), node.params, o)
         o = self.visit(node.body, o)
 
@@ -436,33 +482,37 @@ class StaticChecker(ASTVisitor):
 
     def visit_var_decl(self, node: "VarDecl", o: Any = None):
         self.check_redeclared("Variable", node.name, self.get_next_scope(o))
+
         name = node.name
         var_type = node.var_type
-        init_value = self.visit(node.init_value) if node.init_value else None
+        init_value_type = self.visit(node.init_value, o) if node.init_value else None
 
-        if var_type is None:
-            # init_value
-            pass
-        elif var_type.typ is not init_value.typ:
-            pass
+        o = self.add_new_var(name, var_type, o)
 
+        if not self.infer(node.name, "", var_type, init_value_type, self.get_local_scopes(o)):
+            raise TypeCannotBeInferred(node)
 
-
-
-        o = self.add_new_var(node.name, node.var_type, o)
-        # self.print_scope(o, "adding new var")
+        if not self.check_type(self.get_symbol(name, self.get_local_scopes(o)), Symbol(None, init_value_type)):
+            raise TypeMismatchInStatement(node)
 
         return o
 
     def visit_if_stmt(self, node: "IfStmt", o: Any = None):
-        o = self.visit(node.condition, o)
+        cond_type = self.visit(node.condition, o)
+
+        if type(cond_type) is not IntType:
+            raise TypeMismatchInStatement(node)
+
         o = self.visit(node.then_stmt, o)
         o = self.visit(node.else_stmt, o) if node.else_stmt else o
 
         return o
 
     def visit_while_stmt(self, node: "WhileStmt", o: Any = None):
-        o = self.visit(node.condition, o)
+        cond_type = self.visit(node.condition, o)
+
+        if type(cond_type) is not IntType:
+            raise TypeMismatchInStatement(node)
 
         o = self.add_new_scope(o)
         o = self.add_new_var("While", None, o)
@@ -472,25 +522,40 @@ class StaticChecker(ASTVisitor):
 
     def visit_for_stmt(self, node: "ForStmt", o: Any = None):
         o = self.visit(node.init, o) if node.init else o
-        o = self.visit(node.condition, o)
-        o = self.visit(node.update, o) if node.update else o
+        cond_type = self.visit(node.condition, o) if node.condition else None
+
+        if cond_type is not None and type(cond_type) is not IntType:
+            raise TypeMismatchInStatement(node)
+
+        update_type = self.visit(node.update, o) if node.update else None
+
         o = self.add_new_scope(o)
-        o = self.add_name("For", None, o)
+        o = self.add_new_var("For", None, o)
+
         o = self.visit(node.body, o)
 
         return o
 
     def visit_switch_stmt(self, node: "SwitchStmt", o: Any = None):
+        switch_type = self.visit(node.expr, o)
+
+        if type(switch_type) is not IntType:
+            raise TypeMismatchInStatement(node)
+
         o = self.add_new_scope(o)
-        o = self.add_name("Switch", None, o)
-        o = self.visit(node.expr)
+        o = self.add_new_var("Switch", IntType, o)
+
         o = reduce(lambda y, x: self.visit(x, y), node.cases, o)
-        o = self.visit(node.default_case) if node.default_case else o
+        o = self.visit(node.default_case, o) if node.default_case else o
 
         return o
 
     def visit_case_stmt(self, node: "CaseStmt", o: Any = None):
-        o = self.visit(node.expr)
+        case_type = self.visit(node.expr, o)
+
+        if type(case_type) is not IntType:
+            raise TypeMismatchInStatement(node)
+
         o = reduce(lambda y, x: self.visit(x, y), node.statements, o)
 
         return o
@@ -517,66 +582,130 @@ class StaticChecker(ASTVisitor):
         return o
 
     def visit_return_stmt(self, node: "ReturnStmt", o: Any = None):
+        func = self.get_func(self.get_first_scope(o)[0].name, self.get_func_namespace(o))
+
+        if node.expr is None:
+            if func.typ is not None and type(func.typ) is not VoidType:
+                raise TypeMismatchInStatement(node)
+
+            return o
+
+        lhs = func.name
+        rhs = node.expr.name if type(node.expr) is Identifier else ""
+
+        expr_type = self.visit(node.expr, o)
+
+        if not self.infer(lhs, rhs, func.typ, expr_type, self.get_local_scopes(o)):
+            raise TypeCannotBeInferred(node)
+
+        if not self.check_type(func.typ, expr_type):
+            raise TypeMismatchInExpression(node)
+
         return o
 
     def visit_expr_stmt(self, node: "ExprStmt", o: Any = None):
         if type(node.expr) is AssignExpr:
             return self.visit(AssignStmt(node.expr), o)
 
-        return self.visit(node.expr, o)
+        self.visit(node.expr, o)
+        return o
 
     def visit_assign_stmt(self, node: "AssignStmt", o: Any = None):
-        lt = self.visit(node.expr)
-        rt = self.visit(node.expr)
+        lt = self.visit(node.lhs, o)
+        rt = self.visit(node.rhs, o)
+
+        accepted_left_list = [Identifier, MemberAccess]
+
+        if type(node.lhs) not in accepted_left_list:
+            raise TypeMismatchInExpression(node)
+
+        if type(rt) is list: #struct lit
+             self.check_struct(lt, rt, node, o)
+
+             return lt
+
+        lhs = node.lhs.name if type(node.lhs) is Identifier else ''
+        rhs = node.rhs.name if type(node.rhs) is Identifier else ''
+
+        if not self.infer(lhs, rhs, lt, rt, self.get_local_scopes(o)):
+            raise TypeCannotBeInferred(node)
 
         if not self.check_type(lt, rt):
             raise TypeMismatchInStatement(node)
 
-        self.ass_type(lt, rt)
-
         return o
+
+    def binary_infer(self, node, o):
+        lt = self.visit(node.left, o)
+        rt = self.visit(node.right, o)
+
+        if lt is None and rt is None:
+            return False
+
+        if lt is None and type(rt) is not IntType:
+            return False
+
+        if rt is None and type(lt) is not IntType:
+            return False
+
+        lhs = node.left.name if type(node.left) is Identifier else ''
+        rhs = node.right.name if type(node.right) is Identifier else ''
+
+        return self.infer(lhs, rhs, lt, rt, self.get_local_scopes(o))
+
+    def helper_infer(self, lhs, rhs, o):
+        l_sym = self.get_symbol(lhs.name, self.get_local_scopes(o)) if type(lhs) is Identifier else self.visit(lhs, o)
+        r_sym = self.get_symbol(lhs.name, self.get_local_scopes(o)) if type(rhs) is Identifier else self.visit(rhs, o)
 
     # Expressions
     def visit_binary_op(self, node: "BinaryOp", o: Any = None):
         lt = self.visit(node.left, o)
         rt = self.visit(node.right, o)
 
-        if type(lt) is StructType or type(rt) is StructType:
+        wrong_type_list = [StructType, StringType, list]
+
+        if type(lt) in wrong_type_list or type(rt) in wrong_type_list:
             raise TypeMismatchInExpression(node)
 
-        if node.operator == '+' or node.operator == '-' or node.operator == '*' or node.operator == '/':
-            if type(lt) is StringType or type(rt) is StringType:
-                raise TypeMismatchInExpression(node)
+        if str(node.operator) in ['+', '-', '*', '/']:
+            if not self.binary_infer(node, o):
+                raise TypeCannotBeInferred(node)
 
             if self.check_same_type(lt, rt, IntType):
                 return IntType()
 
             return FloatType()
-        elif node.operator == '%':
+        elif str(node.operator) == '%':
+            if type(lt) is None or type(rt) is None:
+                raise TypeCannotBeInferred(node)
+
             if type(lt) is not IntType or type(rt) is not IntType:
                 raise TypeMismatchInExpression(node)
 
             return IntType()
-        elif node.operator == '==' or node.operator == '!=' or node.operator == '<' or node.operator == '<=' or node.operator == '>' or node.operator == '>=':
-            if type(lt) is StringType or type(rt) is StringType:
+        elif str(node.operator) in ['==', '!=', '<', '<=', '>', '>=']:
+            if type(lt) is None or type(rt) is None:
+                raise TypeCannotBeInferred(node)
+
+            if not self.check_same_type(lt, rt, IntType):
                 raise TypeMismatchInExpression(node)
 
-            if self.check_same_type(lt, rt, IntType):
-                raise TypeMismatchInExpression(node)
-
-            if self.check_same_type(lt, rt, FloatType):
+            if not self.check_same_type(lt, rt, FloatType):
                 raise TypeMismatchInExpression(node)
 
             return IntType()
         else:
+            if type(lt) is None or type(rt) is None:
+                raise TypeCannotBeInferred(node)
+
             if type(lt) is not IntType or type(rt) is not IntType:
                 raise TypeMismatchInExpression(node)
 
             return IntType()
 
-
     def visit_prefix_op(self, node: "PrefixOp", o: Any = None):
         operand_typ = self.visit(node.operand, o)
+
         if operand_typ is not IntType:
             raise TypeMismatchInExpression(node)
 
@@ -594,12 +723,26 @@ class StaticChecker(ASTVisitor):
         lt = self.visit(node.lhs, o)
         rt = self.visit(node.rhs, o)
 
+        accepted_left_list = [Identifier, MemberAccess]
+
+        if type(lt) not in accepted_left_list:
+            raise TypeMismatchInExpression(node)
+
+        if type(rt) is list: #struct lit
+             self.check_struct(lt, rt, node, o)
+
+             return lt
+
+        lhs = node.lhs.name if type(node.lhs) is Identifier else ''
+        rhs = node.rhs.name if type(node.rhs) is Identifier else ''
+
+        if not self.infer(lhs, rhs, lt, rt, self.get_local_scopes(o)):
+            raise TypeCannotBeInferred(node)
+
         if not self.check_type(lt, rt):
             raise TypeMismatchInExpression(node)
 
-        self.ass_type(lt, rt)
-
-        return lhs_expr
+        return lt
 
     def visit_member_access(self, node: "MemberAccess", o: Any = None):
         obj = self.visit(node.obj, o)
@@ -607,13 +750,19 @@ class StaticChecker(ASTVisitor):
         if(type(obj) is not StructType):
             raise TypeMismatchInExpression(node)
 
-        struct_name = obj.typ.struct_name
+        struct_name = obj.struct_name
         member = self.get_struct_member(struct_name, node.member, self.get_struct_namespace(o))
+
+        if member is None:
+            raise TypeMismatchInExpression(node)
 
         return member.typ
 
     def visit_func_call(self, node: "FuncCall", o: Any = None):
         func = self.get_func(node.name, self.get_func_namespace(o))
+
+        if func is None:
+            raise UndeclaredFunction(node.name)
 
         param_len = len(func.params)
         args_len = len(node.args)
@@ -626,18 +775,21 @@ class StaticChecker(ASTVisitor):
         if any([not self.check_type(args_sym_list[i].typ, func.params[i]) for i in range(param_len)]):
             raise TypeMismatchInExpression(node)
 
-        [self.ass_type(args_sym_list[i].typ, func.params[i].typ, o) for i in range(param_len)]
+        [self.infer(args_sym_list[i].name, func.params[i].name, args_sym_list[i].typ, func.params[i].typ) for i in range(param_len)]
 
         return func.typ
 
     def visit_identifier(self, node: "Identifier", o: Any = None):
         sym = self.get_symbol(node.name, self.get_local_scopes(o))
 
+        if sym is None:
+            raise UndeclaredIdentifier(node.name)
+
         return sym.typ
 
     # Literals
     def visit_struct_literal(self, node: "StructLiteral", o: Any = None):
-        return [self.visit(val) for val in node.values]
+        return [self.visit(val, o) for val in node.values]
 
     def visit_int_literal(self, node: "IntLiteral", o: Any = None):
         return IntType()

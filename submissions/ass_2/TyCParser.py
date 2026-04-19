@@ -36,7 +36,7 @@ def serializedATN():
         1,33,1,34,1,34,1,34,1,34,1,34,1,34,3,34,305,8,34,1,35,1,35,1,35,
         1,36,1,36,1,36,1,36,1,36,3,36,315,8,36,1,37,1,37,1,37,1,37,1,37,
         1,37,3,37,323,8,37,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,
-        1,38,1,38,1,38,3,38,337,8,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,
+        1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,3,38,342,8,38,1,38,1,38,
         1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,
         1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,1,38,5,38,370,
         8,38,10,38,12,38,373,9,38,1,39,1,39,1,39,1,39,1,39,3,39,380,8,39,
@@ -54,7 +54,7 @@ def serializedATN():
         1,0,0,0,48,234,1,0,0,0,50,247,1,0,0,0,52,251,1,0,0,0,54,255,1,0,
         0,0,56,257,1,0,0,0,58,270,1,0,0,0,60,284,1,0,0,0,62,290,1,0,0,0,
         64,292,1,0,0,0,66,295,1,0,0,0,68,304,1,0,0,0,70,306,1,0,0,0,72,314,
-        1,0,0,0,74,322,1,0,0,0,76,336,1,0,0,0,78,379,1,0,0,0,80,384,1,0,
+        1,0,0,0,74,322,1,0,0,0,76,341,1,0,0,0,78,379,1,0,0,0,80,384,1,0,
         0,0,82,392,1,0,0,0,84,394,1,0,0,0,86,396,1,0,0,0,88,398,1,0,0,0,
         90,400,1,0,0,0,92,93,3,2,1,0,93,94,5,0,0,1,94,1,1,0,0,0,95,96,3,
         4,2,0,96,97,3,2,1,0,97,100,1,0,0,0,98,100,1,0,0,0,99,95,1,0,0,0,
@@ -124,32 +124,32 @@ def serializedATN():
         73,1,0,0,0,316,317,3,76,38,0,317,318,5,42,0,0,318,319,3,74,37,0,
         319,323,1,0,0,0,320,323,3,76,38,0,321,323,1,0,0,0,322,316,1,0,0,
         0,322,320,1,0,0,0,322,321,1,0,0,0,323,75,1,0,0,0,324,325,6,38,-1,
-        0,325,326,5,35,0,0,326,327,3,76,38,0,327,328,5,36,0,0,328,337,1,
-        0,0,0,329,337,3,72,36,0,330,331,3,88,44,0,331,332,3,76,38,9,332,
-        337,1,0,0,0,333,334,3,86,43,0,334,335,3,76,38,8,335,337,1,0,0,0,
-        336,324,1,0,0,0,336,329,1,0,0,0,336,330,1,0,0,0,336,333,1,0,0,0,
-        337,371,1,0,0,0,338,339,10,7,0,0,339,340,7,2,0,0,340,370,3,76,38,
-        8,341,342,10,6,0,0,342,343,7,3,0,0,343,370,3,76,38,7,344,345,10,
-        5,0,0,345,346,7,4,0,0,346,370,3,76,38,6,347,348,10,4,0,0,348,349,
-        7,5,0,0,349,370,3,76,38,5,350,351,10,3,0,0,351,352,5,29,0,0,352,
-        370,3,76,38,4,353,354,10,2,0,0,354,355,5,28,0,0,355,370,3,76,38,
-        3,356,357,10,1,0,0,357,358,5,33,0,0,358,370,3,76,38,1,359,360,10,
-        12,0,0,360,361,5,34,0,0,361,370,5,44,0,0,362,363,10,11,0,0,363,370,
-        3,90,45,0,364,365,10,10,0,0,365,366,5,35,0,0,366,367,3,82,41,0,367,
-        368,5,36,0,0,368,370,1,0,0,0,369,338,1,0,0,0,369,341,1,0,0,0,369,
-        344,1,0,0,0,369,347,1,0,0,0,369,350,1,0,0,0,369,353,1,0,0,0,369,
-        356,1,0,0,0,369,359,1,0,0,0,369,362,1,0,0,0,369,364,1,0,0,0,370,
-        373,1,0,0,0,371,369,1,0,0,0,371,372,1,0,0,0,372,77,1,0,0,0,373,371,
-        1,0,0,0,374,380,5,44,0,0,375,376,3,80,40,0,376,377,5,34,0,0,377,
-        378,5,44,0,0,378,380,1,0,0,0,379,374,1,0,0,0,379,375,1,0,0,0,380,
-        381,1,0,0,0,381,382,5,33,0,0,382,383,3,76,38,0,383,79,1,0,0,0,384,
-        385,3,76,38,0,385,81,1,0,0,0,386,387,3,84,42,0,387,388,5,42,0,0,
-        388,389,3,82,41,0,389,393,1,0,0,0,390,393,3,84,42,0,391,393,1,0,
-        0,0,392,386,1,0,0,0,392,390,1,0,0,0,392,391,1,0,0,0,393,83,1,0,0,
-        0,394,395,3,76,38,0,395,85,1,0,0,0,396,397,7,6,0,0,397,87,1,0,0,
-        0,398,399,7,7,0,0,399,89,1,0,0,0,400,401,7,7,0,0,401,91,1,0,0,0,
-        26,99,103,118,126,135,147,153,169,181,187,200,222,247,251,255,270,
-        284,290,304,314,322,336,369,371,379,392
+        0,325,326,5,35,0,0,326,327,3,76,38,0,327,328,5,36,0,0,328,342,1,
+        0,0,0,329,342,3,72,36,0,330,331,5,44,0,0,331,332,5,35,0,0,332,333,
+        3,82,41,0,333,334,5,36,0,0,334,342,1,0,0,0,335,336,3,88,44,0,336,
+        337,3,76,38,9,337,342,1,0,0,0,338,339,3,86,43,0,339,340,3,76,38,
+        8,340,342,1,0,0,0,341,324,1,0,0,0,341,329,1,0,0,0,341,330,1,0,0,
+        0,341,335,1,0,0,0,341,338,1,0,0,0,342,371,1,0,0,0,343,344,10,7,0,
+        0,344,345,7,2,0,0,345,370,3,76,38,8,346,347,10,6,0,0,347,348,7,3,
+        0,0,348,370,3,76,38,7,349,350,10,5,0,0,350,351,7,4,0,0,351,370,3,
+        76,38,6,352,353,10,4,0,0,353,354,7,5,0,0,354,370,3,76,38,5,355,356,
+        10,3,0,0,356,357,5,29,0,0,357,370,3,76,38,4,358,359,10,2,0,0,359,
+        360,5,28,0,0,360,370,3,76,38,3,361,362,10,1,0,0,362,363,5,33,0,0,
+        363,370,3,76,38,1,364,365,10,11,0,0,365,366,5,34,0,0,366,370,5,44,
+        0,0,367,368,10,10,0,0,368,370,3,90,45,0,369,343,1,0,0,0,369,346,
+        1,0,0,0,369,349,1,0,0,0,369,352,1,0,0,0,369,355,1,0,0,0,369,358,
+        1,0,0,0,369,361,1,0,0,0,369,364,1,0,0,0,369,367,1,0,0,0,370,373,
+        1,0,0,0,371,369,1,0,0,0,371,372,1,0,0,0,372,77,1,0,0,0,373,371,1,
+        0,0,0,374,380,5,44,0,0,375,376,3,80,40,0,376,377,5,34,0,0,377,378,
+        5,44,0,0,378,380,1,0,0,0,379,374,1,0,0,0,379,375,1,0,0,0,380,381,
+        1,0,0,0,381,382,5,33,0,0,382,383,3,76,38,0,383,79,1,0,0,0,384,385,
+        3,76,38,0,385,81,1,0,0,0,386,387,3,84,42,0,387,388,5,42,0,0,388,
+        389,3,82,41,0,389,393,1,0,0,0,390,393,3,84,42,0,391,393,1,0,0,0,
+        392,386,1,0,0,0,392,390,1,0,0,0,392,391,1,0,0,0,393,83,1,0,0,0,394,
+        395,3,76,38,0,395,85,1,0,0,0,396,397,7,6,0,0,397,87,1,0,0,0,398,
+        399,7,7,0,0,399,89,1,0,0,0,400,401,7,7,0,0,401,91,1,0,0,0,26,99,
+        103,118,126,135,147,153,169,181,187,200,222,247,251,255,270,284,
+        290,304,314,322,341,369,371,379,392
     ]
 
 class TyCParser ( Parser ):
@@ -2685,6 +2685,13 @@ class TyCParser ( Parser ):
             return self.getTypedRuleContext(TyCParser.LvalueContext,0)
 
 
+        def ID(self):
+            return self.getToken(TyCParser.ID, 0)
+
+        def arg_list(self):
+            return self.getTypedRuleContext(TyCParser.Arg_listContext,0)
+
+
         def pre_op(self):
             return self.getTypedRuleContext(TyCParser.Pre_opContext,0)
 
@@ -2738,15 +2745,8 @@ class TyCParser ( Parser ):
         def MEMACC_OP(self):
             return self.getToken(TyCParser.MEMACC_OP, 0)
 
-        def ID(self):
-            return self.getToken(TyCParser.ID, 0)
-
         def post_op(self):
             return self.getTypedRuleContext(TyCParser.Post_opContext,0)
-
-
-        def arg_list(self):
-            return self.getTypedRuleContext(TyCParser.Arg_listContext,0)
 
 
         def getRuleIndex(self):
@@ -2770,10 +2770,10 @@ class TyCParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 336
+            self.state = 341
             self._errHandler.sync(self)
-            token = self._input.LA(1)
-            if token in [35]:
+            la_ = self._interp.adaptivePredict(self._input,21,self._ctx)
+            if la_ == 1:
                 self.state = 325
                 self.match(TyCParser.LROUND_BRACK)
                 self.state = 326
@@ -2781,24 +2781,37 @@ class TyCParser ( Parser ):
                 self.state = 327
                 self.match(TyCParser.RROUND_BRACK)
                 pass
-            elif token in [39, 44, 45, 46, 47]:
+
+            elif la_ == 2:
                 self.state = 329
                 self.lvalue()
                 pass
-            elif token in [31, 32]:
+
+            elif la_ == 3:
                 self.state = 330
-                self.pre_op()
+                self.match(TyCParser.ID)
                 self.state = 331
+                self.match(TyCParser.LROUND_BRACK)
+                self.state = 332
+                self.arg_list()
+                self.state = 333
+                self.match(TyCParser.RROUND_BRACK)
+                pass
+
+            elif la_ == 4:
+                self.state = 335
+                self.pre_op()
+                self.state = 336
                 self.expr(9)
                 pass
-            elif token in [17, 18, 30]:
-                self.state = 333
+
+            elif la_ == 5:
+                self.state = 338
                 self.un_op()
-                self.state = 334
+                self.state = 339
                 self.expr(8)
                 pass
-            else:
-                raise NoViableAltException(self)
+
 
             self._ctx.stop = self._input.LT(-1)
             self.state = 371
@@ -2815,153 +2828,138 @@ class TyCParser ( Parser ):
                     if la_ == 1:
                         localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 338
+                        self.state = 343
                         if not self.precpred(self._ctx, 7):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 7)")
-                        self.state = 339
+                        self.state = 344
                         _la = self._input.LA(1)
                         if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 3670016) != 0)):
                             self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 340
+                        self.state = 345
                         self.expr(8)
                         pass
 
                     elif la_ == 2:
                         localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 341
+                        self.state = 346
                         if not self.precpred(self._ctx, 6):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 6)")
-                        self.state = 342
+                        self.state = 347
                         _la = self._input.LA(1)
                         if not(_la==17 or _la==18):
                             self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 343
+                        self.state = 348
                         self.expr(7)
                         pass
 
                     elif la_ == 3:
                         localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 344
+                        self.state = 349
                         if not self.precpred(self._ctx, 5):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 5)")
-                        self.state = 345
+                        self.state = 350
                         _la = self._input.LA(1)
                         if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 251658240) != 0)):
                             self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 346
+                        self.state = 351
                         self.expr(6)
                         pass
 
                     elif la_ == 4:
                         localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 347
+                        self.state = 352
                         if not self.precpred(self._ctx, 4):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 4)")
-                        self.state = 348
+                        self.state = 353
                         _la = self._input.LA(1)
                         if not(_la==22 or _la==23):
                             self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 349
+                        self.state = 354
                         self.expr(5)
                         pass
 
                     elif la_ == 5:
                         localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 350
+                        self.state = 355
                         if not self.precpred(self._ctx, 3):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 3)")
 
-                        self.state = 351
+                        self.state = 356
                         self.match(TyCParser.AND_OP)
-                        self.state = 352
+                        self.state = 357
                         self.expr(4)
                         pass
 
                     elif la_ == 6:
                         localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 353
+                        self.state = 358
                         if not self.precpred(self._ctx, 2):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 2)")
 
-                        self.state = 354
+                        self.state = 359
                         self.match(TyCParser.OR_OP)
-                        self.state = 355
+                        self.state = 360
                         self.expr(3)
                         pass
 
                     elif la_ == 7:
                         localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 356
+                        self.state = 361
                         if not self.precpred(self._ctx, 1):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 1)")
-                        self.state = 357
+                        self.state = 362
                         self.match(TyCParser.ASS_OP)
-                        self.state = 358
+                        self.state = 363
                         self.expr(1)
                         pass
 
                     elif la_ == 8:
                         localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 359
-                        if not self.precpred(self._ctx, 12):
+                        self.state = 364
+                        if not self.precpred(self._ctx, 11):
                             from antlr4.error.Errors import FailedPredicateException
-                            raise FailedPredicateException(self, "self.precpred(self._ctx, 12)")
-                        self.state = 360
+                            raise FailedPredicateException(self, "self.precpred(self._ctx, 11)")
+                        self.state = 365
                         self.match(TyCParser.MEMACC_OP)
-                        self.state = 361
+                        self.state = 366
                         self.match(TyCParser.ID)
                         pass
 
                     elif la_ == 9:
                         localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 362
-                        if not self.precpred(self._ctx, 11):
-                            from antlr4.error.Errors import FailedPredicateException
-                            raise FailedPredicateException(self, "self.precpred(self._ctx, 11)")
-                        self.state = 363
-                        self.post_op()
-                        pass
-
-                    elif la_ == 10:
-                        localctx = TyCParser.ExprContext(self, _parentctx, _parentState)
-                        self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 364
+                        self.state = 367
                         if not self.precpred(self._ctx, 10):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 10)")
-                        self.state = 365
-                        self.match(TyCParser.LROUND_BRACK)
-                        self.state = 366
-                        self.arg_list()
-                        self.state = 367
-                        self.match(TyCParser.RROUND_BRACK)
+                        self.state = 368
+                        self.post_op()
                         pass
 
              
@@ -3388,14 +3386,10 @@ class TyCParser ( Parser ):
          
 
             if predIndex == 7:
-                return self.precpred(self._ctx, 12)
-         
-
-            if predIndex == 8:
                 return self.precpred(self._ctx, 11)
          
 
-            if predIndex == 9:
+            if predIndex == 8:
                 return self.precpred(self._ctx, 10)
          
 

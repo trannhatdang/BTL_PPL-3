@@ -618,11 +618,7 @@ class TyCBuilder:
     def test_checker(self, watch = False, **kwargs):
         """Run static semantic checker tests (Assignment 3)."""
         if not watch:
-            if not self.build_dir.exists():
-                print(
-                    self.colors.yellow("Build directory not found. Running build first...")
-                )
-                self.build_grammar()
+            self.build_grammar()
 
             print(self.colors.yellow("Running semantic checker tests..."))
             checker_report_dir = self.report_dir / "checker"
@@ -645,7 +641,6 @@ class TyCBuilder:
                     "--timeout=10",
                     "--self-contained-html",
                     "-vv",
-                    "-l",
                 ],
                 check=False,
             )
@@ -666,9 +661,11 @@ class TyCBuilder:
             # shutil.copy3(test_dir, sub2_dir)
             return
 
-        watch_files = [self.root_dir / "src" / "grammar" / "TyC.g4", 
-                       self.root_dir / "src" / "semantics" / "static_checker.py", 
-                       self.root_dir / "tests" / "test_checker.py"]
+        watch_files = [self.root_dir / "src" / "grammar" / "TyC.g4",
+                       self.root_dir / "src" / "astgen" / "ast_generation.py",
+                       self.root_dir / "src" / "semantics" / "static_checker.py",
+                       self.root_dir / "tests" / "test_checker.py",
+                       ]
 
         watch_kwargs = {'watch': False}
         self.watch(target = self.test_checker, files = watch_files, watch_kwargs = watch_kwargs, constant_check = False, force_close = True)
