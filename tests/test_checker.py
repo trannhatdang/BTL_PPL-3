@@ -128,6 +128,16 @@ void main() {
     expected = "Static checking passed"
     assert Checker(source).check_from_source() == expected
 
+def test_007():
+    source = """
+void main() {
+    auto x;
+    x = 3;
+}
+"""
+    expected = "Static checking passed"
+    assert Checker(source).check_from_source() == expected
+
 #############EXAMPLES##################
 def ex_test_001():
     source = """
@@ -365,4 +375,66 @@ void main() {
 }
 """
     expected = "UndeclaredIdentifier(a)"
+    assert Checker(source).check_from_source() == expected
+
+#############MISMATCH################
+
+def test_mismatch_001():
+    source = """
+void main() {
+    auto x;
+    x = x + 3.4 * x - 2.1;
+}
+"""
+    expected = "Type Mismatch In Expression: BinaryOp(Identifier(x) + FloatLit(2.1))"
+    assert Checker(source).check_from_source() == expected
+
+def test_mismatch_002():
+    source = """
+void main() {
+    auto x;
+    auto y;
+    auto z;
+    x = (x && y) > (False || (z > 3));
+    z = x;
+}
+"""
+    expected = "TypeMismatchInStatement(ExprStmt(AssignExpr(z = x)))"
+    assert Checker(source).check_from_source() == expected
+
+def test_mismatch_004()
+    source = """
+void main() {
+    auto x;
+    x = False;
+}
+"""
+    expected = "TypeMismatchInStatement(ExprStmt(AssignExpr(z = x)))"
+    assert Checker(source).check_from_source() == expected
+
+def test_mismatch_005():
+    source = """
+void main() {
+    auto x;
+    auto y;
+    auto z;
+
+    x = (x && y) > (False || (z > 3));
+    z = x;
+}
+"""
+    expected = "TypeMismatchInStatement(ExprStmt(AssignExpr(z = x)))"
+    assert Checker(source).check_from_source() == expected
+
+
+#############INFER################
+def test_infer_001():
+    source = """
+void main() {
+    auto x;
+    auto y;
+    x = y;
+}
+"""
+    expected = "TypeCannotBeInferred(ExprStmt(AssignExpr(x = y)))"
     assert Checker(source).check_from_source() == expected

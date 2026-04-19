@@ -2429,6 +2429,10 @@ public class TyCParser extends Parser {
 		public LvalueContext lvalue() {
 			return getRuleContext(LvalueContext.class,0);
 		}
+		public TerminalNode ID() { return getToken(TyCParser.ID, 0); }
+		public Arg_listContext arg_list() {
+			return getRuleContext(Arg_listContext.class,0);
+		}
 		public Pre_opContext pre_op() {
 			return getRuleContext(Pre_opContext.class,0);
 		}
@@ -2450,12 +2454,8 @@ public class TyCParser extends Parser {
 		public TerminalNode OR_OP() { return getToken(TyCParser.OR_OP, 0); }
 		public TerminalNode ASS_OP() { return getToken(TyCParser.ASS_OP, 0); }
 		public TerminalNode MEMACC_OP() { return getToken(TyCParser.MEMACC_OP, 0); }
-		public TerminalNode ID() { return getToken(TyCParser.ID, 0); }
 		public Post_opContext post_op() {
 			return getRuleContext(Post_opContext.class,0);
-		}
-		public Arg_listContext arg_list() {
-			return getRuleContext(Arg_listContext.class,0);
 		}
 		public ExprContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -2487,10 +2487,10 @@ public class TyCParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(336);
+			setState(341);
 			_errHandler.sync(this);
-			switch (_input.LA(1)) {
-			case LROUND_BRACK:
+			switch ( getInterpreter().adaptivePredict(_input,21,_ctx) ) {
+			case 1:
 				{
 				setState(325);
 				match(LROUND_BRACK);
@@ -2500,37 +2500,40 @@ public class TyCParser extends Parser {
 				match(RROUND_BRACK);
 				}
 				break;
-			case LCURLY_BRACK:
-			case ID:
-			case INT:
-			case FLOAT:
-			case STRING:
+			case 2:
 				{
 				setState(329);
 				lvalue();
 				}
 				break;
-			case INC_OP:
-			case DEC_OP:
+			case 3:
 				{
 				setState(330);
-				pre_op();
+				match(ID);
 				setState(331);
+				match(LROUND_BRACK);
+				setState(332);
+				arg_list();
+				setState(333);
+				match(RROUND_BRACK);
+				}
+				break;
+			case 4:
+				{
+				setState(335);
+				pre_op();
+				setState(336);
 				expr(9);
 				}
 				break;
-			case ADD_OP:
-			case MIN_OP:
-			case NOT_OP:
+			case 5:
 				{
-				setState(333);
+				setState(338);
 				un_op();
-				setState(334);
+				setState(339);
 				expr(8);
 				}
 				break;
-			default:
-				throw new NoViableAltException(this);
 			}
 			_ctx.stop = _input.LT(-1);
 			setState(371);
@@ -2548,9 +2551,9 @@ public class TyCParser extends Parser {
 						{
 						_localctx = new ExprContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(338);
+						setState(343);
 						if (!(precpred(_ctx, 7))) throw new FailedPredicateException(this, "precpred(_ctx, 7)");
-						setState(339);
+						setState(344);
 						_la = _input.LA(1);
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 3670016L) != 0)) ) {
 						_errHandler.recoverInline(this);
@@ -2560,7 +2563,7 @@ public class TyCParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(340);
+						setState(345);
 						expr(8);
 						}
 						break;
@@ -2568,9 +2571,9 @@ public class TyCParser extends Parser {
 						{
 						_localctx = new ExprContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(341);
+						setState(346);
 						if (!(precpred(_ctx, 6))) throw new FailedPredicateException(this, "precpred(_ctx, 6)");
-						setState(342);
+						setState(347);
 						_la = _input.LA(1);
 						if ( !(_la==ADD_OP || _la==MIN_OP) ) {
 						_errHandler.recoverInline(this);
@@ -2580,7 +2583,7 @@ public class TyCParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(343);
+						setState(348);
 						expr(7);
 						}
 						break;
@@ -2588,9 +2591,9 @@ public class TyCParser extends Parser {
 						{
 						_localctx = new ExprContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(344);
+						setState(349);
 						if (!(precpred(_ctx, 5))) throw new FailedPredicateException(this, "precpred(_ctx, 5)");
-						setState(345);
+						setState(350);
 						_la = _input.LA(1);
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 251658240L) != 0)) ) {
 						_errHandler.recoverInline(this);
@@ -2600,7 +2603,7 @@ public class TyCParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(346);
+						setState(351);
 						expr(6);
 						}
 						break;
@@ -2608,9 +2611,9 @@ public class TyCParser extends Parser {
 						{
 						_localctx = new ExprContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(347);
+						setState(352);
 						if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
-						setState(348);
+						setState(353);
 						_la = _input.LA(1);
 						if ( !(_la==EQ_OP || _la==NEQ_OP) ) {
 						_errHandler.recoverInline(this);
@@ -2620,7 +2623,7 @@ public class TyCParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(349);
+						setState(354);
 						expr(5);
 						}
 						break;
@@ -2628,13 +2631,13 @@ public class TyCParser extends Parser {
 						{
 						_localctx = new ExprContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(350);
+						setState(355);
 						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
 						{
-						setState(351);
+						setState(356);
 						match(AND_OP);
 						}
-						setState(352);
+						setState(357);
 						expr(4);
 						}
 						break;
@@ -2642,13 +2645,13 @@ public class TyCParser extends Parser {
 						{
 						_localctx = new ExprContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(353);
+						setState(358);
 						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
 						{
-						setState(354);
+						setState(359);
 						match(OR_OP);
 						}
-						setState(355);
+						setState(360);
 						expr(3);
 						}
 						break;
@@ -2656,11 +2659,11 @@ public class TyCParser extends Parser {
 						{
 						_localctx = new ExprContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(356);
+						setState(361);
 						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-						setState(357);
+						setState(362);
 						match(ASS_OP);
-						setState(358);
+						setState(363);
 						expr(1);
 						}
 						break;
@@ -2668,11 +2671,11 @@ public class TyCParser extends Parser {
 						{
 						_localctx = new ExprContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(359);
-						if (!(precpred(_ctx, 12))) throw new FailedPredicateException(this, "precpred(_ctx, 12)");
-						setState(360);
+						setState(364);
+						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
+						setState(365);
 						match(MEMACC_OP);
-						setState(361);
+						setState(366);
 						match(ID);
 						}
 						break;
@@ -2680,24 +2683,10 @@ public class TyCParser extends Parser {
 						{
 						_localctx = new ExprContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(362);
-						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
-						setState(363);
-						post_op();
-						}
-						break;
-					case 10:
-						{
-						_localctx = new ExprContext(_parentctx, _parentState);
-						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(364);
-						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
-						setState(365);
-						match(LROUND_BRACK);
-						setState(366);
-						arg_list();
 						setState(367);
-						match(RROUND_BRACK);
+						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
+						setState(368);
+						post_op();
 						}
 						break;
 					}
@@ -3103,10 +3092,8 @@ public class TyCParser extends Parser {
 		case 6:
 			return precpred(_ctx, 1);
 		case 7:
-			return precpred(_ctx, 12);
-		case 8:
 			return precpred(_ctx, 11);
-		case 9:
+		case 8:
 			return precpred(_ctx, 10);
 		}
 		return true;
@@ -3162,8 +3149,8 @@ public class TyCParser extends Parser {
 		"\u0001\"\u0003\"\u0131\b\"\u0001#\u0001#\u0001#\u0001$\u0001$\u0001$\u0001"+
 		"$\u0001$\u0003$\u013b\b$\u0001%\u0001%\u0001%\u0001%\u0001%\u0001%\u0003"+
 		"%\u0143\b%\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001"+
-		"&\u0001&\u0001&\u0001&\u0003&\u0151\b&\u0001&\u0001&\u0001&\u0001&\u0001"+
-		"&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001"+
+		"&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0003&\u0156"+
+		"\b&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001"+
 		"&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001"+
 		"&\u0001&\u0001&\u0001&\u0001&\u0001&\u0001&\u0005&\u0172\b&\n&\f&\u0175"+
 		"\t&\u0001\'\u0001\'\u0001\'\u0001\'\u0001\'\u0003\'\u017c\b\'\u0001\'"+
@@ -3191,7 +3178,7 @@ public class TyCParser extends Parser {
 		">\u0122\u0001\u0000\u0000\u0000@\u0124\u0001\u0000\u0000\u0000B\u0127"+
 		"\u0001\u0000\u0000\u0000D\u0130\u0001\u0000\u0000\u0000F\u0132\u0001\u0000"+
 		"\u0000\u0000H\u013a\u0001\u0000\u0000\u0000J\u0142\u0001\u0000\u0000\u0000"+
-		"L\u0150\u0001\u0000\u0000\u0000N\u017b\u0001\u0000\u0000\u0000P\u0180"+
+		"L\u0155\u0001\u0000\u0000\u0000N\u017b\u0001\u0000\u0000\u0000P\u0180"+
 		"\u0001\u0000\u0000\u0000R\u0188\u0001\u0000\u0000\u0000T\u018a\u0001\u0000"+
 		"\u0000\u0000V\u018c\u0001\u0000\u0000\u0000X\u018e\u0001\u0000\u0000\u0000"+
 		"Z\u0190\u0001\u0000\u0000\u0000\\]\u0003\u0002\u0001\u0000]^\u0005\u0000"+
@@ -3314,30 +3301,30 @@ public class TyCParser extends Parser {
 		"\u0000\u0000\u0000\u0142\u0141\u0001\u0000\u0000\u0000\u0143K\u0001\u0000"+
 		"\u0000\u0000\u0144\u0145\u0006&\uffff\uffff\u0000\u0145\u0146\u0005#\u0000"+
 		"\u0000\u0146\u0147\u0003L&\u0000\u0147\u0148\u0005$\u0000\u0000\u0148"+
-		"\u0151\u0001\u0000\u0000\u0000\u0149\u0151\u0003H$\u0000\u014a\u014b\u0003"+
-		"X,\u0000\u014b\u014c\u0003L&\t\u014c\u0151\u0001\u0000\u0000\u0000\u014d"+
-		"\u014e\u0003V+\u0000\u014e\u014f\u0003L&\b\u014f\u0151\u0001\u0000\u0000"+
-		"\u0000\u0150\u0144\u0001\u0000\u0000\u0000\u0150\u0149\u0001\u0000\u0000"+
-		"\u0000\u0150\u014a\u0001\u0000\u0000\u0000\u0150\u014d\u0001\u0000\u0000"+
-		"\u0000\u0151\u0173\u0001\u0000\u0000\u0000\u0152\u0153\n\u0007\u0000\u0000"+
-		"\u0153\u0154\u0007\u0002\u0000\u0000\u0154\u0172\u0003L&\b\u0155\u0156"+
-		"\n\u0006\u0000\u0000\u0156\u0157\u0007\u0003\u0000\u0000\u0157\u0172\u0003"+
-		"L&\u0007\u0158\u0159\n\u0005\u0000\u0000\u0159\u015a\u0007\u0004\u0000"+
-		"\u0000\u015a\u0172\u0003L&\u0006\u015b\u015c\n\u0004\u0000\u0000\u015c"+
-		"\u015d\u0007\u0005\u0000\u0000\u015d\u0172\u0003L&\u0005\u015e\u015f\n"+
-		"\u0003\u0000\u0000\u015f\u0160\u0005\u001d\u0000\u0000\u0160\u0172\u0003"+
-		"L&\u0004\u0161\u0162\n\u0002\u0000\u0000\u0162\u0163\u0005\u001c\u0000"+
-		"\u0000\u0163\u0172\u0003L&\u0003\u0164\u0165\n\u0001\u0000\u0000\u0165"+
-		"\u0166\u0005!\u0000\u0000\u0166\u0172\u0003L&\u0001\u0167\u0168\n\f\u0000"+
-		"\u0000\u0168\u0169\u0005\"\u0000\u0000\u0169\u0172\u0005,\u0000\u0000"+
-		"\u016a\u016b\n\u000b\u0000\u0000\u016b\u0172\u0003Z-\u0000\u016c\u016d"+
-		"\n\n\u0000\u0000\u016d\u016e\u0005#\u0000\u0000\u016e\u016f\u0003R)\u0000"+
-		"\u016f\u0170\u0005$\u0000\u0000\u0170\u0172\u0001\u0000\u0000\u0000\u0171"+
-		"\u0152\u0001\u0000\u0000\u0000\u0171\u0155\u0001\u0000\u0000\u0000\u0171"+
-		"\u0158\u0001\u0000\u0000\u0000\u0171\u015b\u0001\u0000\u0000\u0000\u0171"+
-		"\u015e\u0001\u0000\u0000\u0000\u0171\u0161\u0001\u0000\u0000\u0000\u0171"+
-		"\u0164\u0001\u0000\u0000\u0000\u0171\u0167\u0001\u0000\u0000\u0000\u0171"+
-		"\u016a\u0001\u0000\u0000\u0000\u0171\u016c\u0001\u0000\u0000\u0000\u0172"+
+		"\u0156\u0001\u0000\u0000\u0000\u0149\u0156\u0003H$\u0000\u014a\u014b\u0005"+
+		",\u0000\u0000\u014b\u014c\u0005#\u0000\u0000\u014c\u014d\u0003R)\u0000"+
+		"\u014d\u014e\u0005$\u0000\u0000\u014e\u0156\u0001\u0000\u0000\u0000\u014f"+
+		"\u0150\u0003X,\u0000\u0150\u0151\u0003L&\t\u0151\u0156\u0001\u0000\u0000"+
+		"\u0000\u0152\u0153\u0003V+\u0000\u0153\u0154\u0003L&\b\u0154\u0156\u0001"+
+		"\u0000\u0000\u0000\u0155\u0144\u0001\u0000\u0000\u0000\u0155\u0149\u0001"+
+		"\u0000\u0000\u0000\u0155\u014a\u0001\u0000\u0000\u0000\u0155\u014f\u0001"+
+		"\u0000\u0000\u0000\u0155\u0152\u0001\u0000\u0000\u0000\u0156\u0173\u0001"+
+		"\u0000\u0000\u0000\u0157\u0158\n\u0007\u0000\u0000\u0158\u0159\u0007\u0002"+
+		"\u0000\u0000\u0159\u0172\u0003L&\b\u015a\u015b\n\u0006\u0000\u0000\u015b"+
+		"\u015c\u0007\u0003\u0000\u0000\u015c\u0172\u0003L&\u0007\u015d\u015e\n"+
+		"\u0005\u0000\u0000\u015e\u015f\u0007\u0004\u0000\u0000\u015f\u0172\u0003"+
+		"L&\u0006\u0160\u0161\n\u0004\u0000\u0000\u0161\u0162\u0007\u0005\u0000"+
+		"\u0000\u0162\u0172\u0003L&\u0005\u0163\u0164\n\u0003\u0000\u0000\u0164"+
+		"\u0165\u0005\u001d\u0000\u0000\u0165\u0172\u0003L&\u0004\u0166\u0167\n"+
+		"\u0002\u0000\u0000\u0167\u0168\u0005\u001c\u0000\u0000\u0168\u0172\u0003"+
+		"L&\u0003\u0169\u016a\n\u0001\u0000\u0000\u016a\u016b\u0005!\u0000\u0000"+
+		"\u016b\u0172\u0003L&\u0001\u016c\u016d\n\u000b\u0000\u0000\u016d\u016e"+
+		"\u0005\"\u0000\u0000\u016e\u0172\u0005,\u0000\u0000\u016f\u0170\n\n\u0000"+
+		"\u0000\u0170\u0172\u0003Z-\u0000\u0171\u0157\u0001\u0000\u0000\u0000\u0171"+
+		"\u015a\u0001\u0000\u0000\u0000\u0171\u015d\u0001\u0000\u0000\u0000\u0171"+
+		"\u0160\u0001\u0000\u0000\u0000\u0171\u0163\u0001\u0000\u0000\u0000\u0171"+
+		"\u0166\u0001\u0000\u0000\u0000\u0171\u0169\u0001\u0000\u0000\u0000\u0171"+
+		"\u016c\u0001\u0000\u0000\u0000\u0171\u016f\u0001\u0000\u0000\u0000\u0172"+
 		"\u0175\u0001\u0000\u0000\u0000\u0173\u0171\u0001\u0000\u0000\u0000\u0173"+
 		"\u0174\u0001\u0000\u0000\u0000\u0174M\u0001\u0000\u0000\u0000\u0175\u0173"+
 		"\u0001\u0000\u0000\u0000\u0176\u017c\u0005,\u0000\u0000\u0177\u0178\u0003"+
@@ -3355,7 +3342,7 @@ public class TyCParser extends Parser {
 		"\u0000\u0000\u0000\u018e\u018f\u0007\u0007\u0000\u0000\u018fY\u0001\u0000"+
 		"\u0000\u0000\u0190\u0191\u0007\u0007\u0000\u0000\u0191[\u0001\u0000\u0000"+
 		"\u0000\u001acgv~\u0087\u0093\u0099\u00a9\u00b5\u00bb\u00c8\u00de\u00f7"+
-		"\u00fb\u00ff\u010e\u011c\u0122\u0130\u013a\u0142\u0150\u0171\u0173\u017b"+
+		"\u00fb\u00ff\u010e\u011c\u0122\u0130\u013a\u0142\u0155\u0171\u0173\u017b"+
 		"\u0188";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());

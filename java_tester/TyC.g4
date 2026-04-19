@@ -89,9 +89,9 @@ lvalue: ID | INT | FLOAT | STRING | struct_lit;
 expr_list: expr COMMA expr_list | expr | ;
 expr: '(' expr ')'
 	| lvalue
+	| ID '(' arg_list ')'
 	| expr '.' ID
 	| expr post_op
-	| expr '(' arg_list ')'
 	| pre_op expr
 	| un_op expr
 	| expr (MULT_OP | DIV_OP | MOD_OP) expr
