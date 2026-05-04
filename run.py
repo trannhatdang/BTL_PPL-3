@@ -730,6 +730,81 @@ class TyCBuilder:
         watch_kwargs = {'watch': False}
         self.watch(target = self.test_gui, files = watch_files, watch_kwargs = watch_kwargs, constant_check = False, force_close = True)
 
+    def compile_runtime(self):
+        """Compile Java runtime files used by code generation tests."""
+        runtime_dir = self.root_dir / "src" / "runtime"
+        io_java = runtime_dir / "io.java"
+        io_class = runtime_dir / "io.class"
+
+        if not io_java.exists():
+            print(self.colors.red("io.java not found in src/runtime/"))
+            sys.exit(1)
+
+        if io_class.exists() and io_class.stat().st_mtime >= io_java.stat().st_mtime:
+            print(self.colors.blue("Runtime files already compiled."))
+            return
+
+        print(self.colors.yellow("Compiling runtime Java files..."))
+        result = self.run_command(
+            ["javac", str(io_java)],
+            cwd=runtime_dir,
+            check=False,
+            capture_output=True,
+        )
+
+        if result.returncode != 0:
+            print(self.colors.red(f"Failed to compile io.java: {result.stderr}"))
+            sys.exit(1)
+
+        print(self.colors.green("Runtime files compiled successfully."))
+
+    def test_codegen(self, watch = False, ui = False, **kwargs):
+        """Run code generation tests (Assignment 4)."""
+        if not watch:
+            self.build_grammar()
+
+            self.compile_runtime()
+
+            print(self.colors.yellow("Running code generation tests..."))
+            codegen_report_dir = self.report_dir / "codegen"
+            if not codegen_report_dir.exists():
+                self.report_dir.mkdir(exist_ok=True)
+
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(self.root_dir)
+
+            curr_time = datetime.datetime
+            curr_time = str(curr_time.now().strftime('%Y-%m-%d %H-%M-%S'))
+
+            self.run_command(
+                [
+                    str(self.venv_python3),
+                    "-m",
+                    "pytest",
+                    "tests/test_codegen.py",
+                    f"--html={codegen_report_dir}/{curr_time}.html",
+                    "--timeout=10",
+                    "--self-contained-html",
+                    "-v",
+                ],
+                check=False,
+            )
+
+            print(
+                self.colors.green(
+                    f"Code generation tests completed. Reports at {codegen_report_dir}/index.html"
+                )
+            )
+            self.clean_cache()
+
+            return
+
+        watch_files = [self.root_dir / "tests" / "test_codegen.py", self.root_dir / "src" / "codegen" / "emitter.py",
+                       self.root_dir / "src" / "codegen" / "codegen.py"]
+
+        watch_kwargs = {'watch': False}
+        self.watch(target = self.test_codegen, files = watch_files, watch_kwargs = watch_kwargs, constant_check = False, force_close = True)
+
     def test_all(self, watch = False, ui = False, parts = ['1', '2', '3', '4'], **kwargs):
         self.clear()
         if parts == None:
@@ -761,6 +836,7 @@ class TyCBuilder:
 
         self.watch(target = self.test_all, files = watch_files, watch_kwargs = watch_kwargs)
 
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -786,6 +862,7 @@ def main():
             "test-ast",
             "test-checker",
             "test-gui",
+            "test-codegen",
             "test-all"
         ],
         help="Command to execute",
@@ -819,6 +896,7 @@ def main():
         "test-ast": builder.test_ast,
         "test-checker": builder.test_checker,
         "test-gui": builder.test_gui,
+        "test-codegen": builder.test_codegen,
         "test-all": builder.test_all
     }
 
