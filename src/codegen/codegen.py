@@ -72,8 +72,7 @@ class CodeGenerator(BaseVisitor):
                 )
 
         for decl in node.decls:
-            if isinstance(decl, FuncDecl):
-                self.visit(decl, None)
+            self.visit(decl, None)
 
         self.emit.emit_epilog()
 
@@ -248,33 +247,29 @@ class CodeGenerator(BaseVisitor):
         return self.emit.emit_push_const(node.value, StringType(), o.frame), StringType()
 
     def visit_struct_decl(self, node: StructDecl, o: Any = None):
-        emit = Emitter(f"{node.name}.j")
-        emit.printout(emit.emit_prolog(node.name))
-    
+        self.struct_emit = Emitter(f"{node.name}.j")
+        self.struct_emit.printout(emit.emit_prolog(node.name))
+
+        frame = Frame(node.name, None)
+
         struct = [node.name]
 
-        struct_members = list(map(lambda x: self.visit(x, emit), node.members))
+        struct_members = list(map(lambda x: self.visit(x, Access(frame, [])), node.members))
         struct.append(struct_members)
 
         self.struct_list.append(struct)
 
-        emit.emit_epilog()
+        self.struct_emit.emit_epilog()
         return None
 
     def visit_member_decl(self, node: MemberDecl, o: Any = None):
         frame = o.frame
-        idx = frame.get_new_index()
-        var_type = node.var_type if node.var_type else self._infer_type(node.init_value, Access(frame, o.sym))
-        self.emit.print_out(
-            self.emit.emit_var(
-                idx, node.name, var_type, frame.get_start_label(), frame.get_end_label()
+        var_type = node.member_type
+        self.struct_emit.print_out(
+            self.struct_emit.put_field(
+                node.name, var_type, frame
             )
         )
-        if node.init_value is not None:
-            rhs_code, _ = self.visit(node.init_value, Access(frame, o.sym))
-            self.emit.print_out(rhs_code)
-            self.emit.print_out(self.emit.emit_write_var(node.name, var_type, idx, frame))
-        o.sym.append(Symbol(node.name, var_type, Index(idx)))
         return node.member_type
 
     def visit_param(self, node: Param, o: Any = None):
@@ -331,16 +326,17 @@ class CodeGenerator(BaseVisitor):
         raise RuntimeError("PrefixOp not supported in minimal codegen")
 
     def visit_postfix_op(self, node: PostfixOp, o: Any = None):
-        code, typ = self.visit(node.operand, o)
+        operand_val, operand_typ = self.visit(node.operand, o)
         frame = o.frame
 
         if node.operator in ["++", "--"]:
+            sym = self._lookup_symbol(node.name, o.sym)
             result_type = FloatType() if is_float_type(typ) else IntType()
 
             one_code, _ = self.visit(IntLiteral(1), o)
-            self.emit.print_out(code + one_code + self.emit.emit_add_op(node.operator[0], result_type, frame))
+            self.emit.print_out(operand_val + one_code + self.emit.emit_add_op(node.operator[0], result_type + self.emit.emit_write_var(node.operand), frame))
             return (
-                code,
+                operand_val,
                 result_type,
             )
 
