@@ -208,3 +208,24 @@ def test_010():
     result = CodeGenerator().generate_and_run(ast)
     assert result == expected, f"Expected '{expected}', got '{result}'"
 
+# def test_for_01():
+#     ast = Program([
+#         FuncDecl(
+#             VoidType(),
+#             "main",
+#             [],
+#             BlockStmt([
+#                 ForStmt(VarDecl(IntType(), "i", IntLiteral(0)),
+#                         BinaryOp(Identifier("i"), "<", IntLiteral(10)),
+#                         PostfixOp(Identifier("i"), "++"),
+#                         BlockStmt([
+#                             ExprStmt(FuncCall("printInt", [
+#                                 Identifier("i")
+#                             ]))
+#                         ])
+#             ])
+#         )
+#     ])
+#     expected = "12345678910"
+#     result = CodeGenerator().generate_and_run(ast)
+#     assert result == expected, f"Expected '{expected}', got '{result}'"

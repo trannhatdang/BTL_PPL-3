@@ -248,10 +248,34 @@ class CodeGenerator(BaseVisitor):
         return self.emit.emit_push_const(node.value, StringType(), o.frame), StringType()
 
     def visit_struct_decl(self, node: StructDecl, o: Any = None):
+        emit = Emitter(f"{node.name}.j")
+        emit.printout(emit.emit_prolog(node.name))
+    
+        struct = [node.name]
+
+        struct_members = list(map(lambda x: self.visit(x, emit), node.members))
+        struct.append(struct_members)
+
+        self.struct_list.append(struct)
+
+        emit.emit_epilog()
         return None
 
     def visit_member_decl(self, node: MemberDecl, o: Any = None):
-        return None
+        frame = o.frame
+        idx = frame.get_new_index()
+        var_type = node.var_type if node.var_type else self._infer_type(node.init_value, Access(frame, o.sym))
+        self.emit.print_out(
+            self.emit.emit_var(
+                idx, node.name, var_type, frame.get_start_label(), frame.get_end_label()
+            )
+        )
+        if node.init_value is not None:
+            rhs_code, _ = self.visit(node.init_value, Access(frame, o.sym))
+            self.emit.print_out(rhs_code)
+            self.emit.print_out(self.emit.emit_write_var(node.name, var_type, idx, frame))
+        o.sym.append(Symbol(node.name, var_type, Index(idx)))
+        return node.member_type
 
     def visit_param(self, node: Param, o: Any = None):
         return None
@@ -272,7 +296,21 @@ class CodeGenerator(BaseVisitor):
         return node
 
     def visit_for_stmt(self, node: ForStmt, o: Any = None):
-        raise RuntimeError("ForStmt not supported in minimal codegen")
+        frame = o.frame
+        start_label = frame.get_new_label()
+        end_label = frame.get_new_label()
+        init_code, _ = self.visit(node.init, Access(frame, o.sym))
+        self.emit.print_out(init_code)
+        self.emit.print_out(self.emit.emit_label(start_label, frame))
+        cond_code, _ = self.visit(node.condition, Access(frame, o.sym))
+        self.emit.print_out(cond_code)
+        self.emit.print_out(self.emit.emit_if_false(end_label, frame))
+        self.visit(node.body, o)
+        update_code, _ = self.visit(node.update, Access(frame, o.sym))
+        self.emit.print_out(update_code)
+        self.emit.print_out(self.emit.emit_goto(start_label, frame))
+        self.emit.print_out(self.emit.emit_label(end_label, frame))
+        return o
 
     def visit_switch_stmt(self, node: SwitchStmt, o: Any = None):
         raise RuntimeError("SwitchStmt not supported in minimal codegen")
@@ -293,7 +331,20 @@ class CodeGenerator(BaseVisitor):
         raise RuntimeError("PrefixOp not supported in minimal codegen")
 
     def visit_postfix_op(self, node: PostfixOp, o: Any = None):
-        raise RuntimeError("PostfixOp not supported in minimal codegen")
+        code, typ = self.visit(node.operand, o)
+        frame = o.frame
+
+        if node.operator in ["++", "--"]:
+            result_type = FloatType() if is_float_type(typ) else IntType()
+
+            one_code, _ = self.visit(IntLiteral(1), o)
+            self.emit.print_out(code + one_code + self.emit.emit_add_op(node.operator[0], result_type, frame))
+            return (
+                code,
+                result_type,
+            )
+
+        raise RuntimeError(f"Unsupported operator: {node.operator}")
 
     def visit_member_access(self, node: MemberAccess, o: Any = None):
         raise RuntimeError("MemberAccess not supported in minimal codegen")
