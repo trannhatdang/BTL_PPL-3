@@ -707,3 +707,9 @@ class Emitter:
         Clear the code buffer.
         """
         self.buff.clear()
+
+    def emit_field(self, lexeme, in_) -> None:
+        end = '\n'
+        indent = ' '
+
+        return ".field" + indent + lexeme + indent + self.get_jvm_type(in_) + end

@@ -229,3 +229,76 @@ def test_010():
 #     expected = "12345678910"
 #     result = CodeGenerator().generate_and_run(ast)
 #     assert result == expected, f"Expected '{expected}', got '{result}'"
+
+def test_struct_decl_01():
+    ast = Program([
+        StructDecl("Test", [
+                MemberDecl(IntType(), 'x'),
+                MemberDecl(FloatType(), 'y')
+            ]),
+        StructDecl("Point", [
+                MemberDecl(IntType(), 'x'),
+                MemberDecl(IntType(), 'y')
+            ]),
+        StructDecl("Vector", [
+                MemberDecl(FloatType(), 'x'),
+                MemberDecl(FloatType(), 'y')
+            ]),
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                VarDecl(StructType("Test"), "test"),
+                VarDecl(StructType("Point"), "point"),
+                VarDecl(StructType("Vector"), "vector"),
+            ])
+        )
+    ])
+    expected = ""
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"
+
+def test_struct_decl_02():
+    ast = Program([
+        StructDecl("Test", [
+                MemberDecl(IntType(), 'x'),
+                MemberDecl(FloatType(), 'y')
+            ]),
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                VarDecl(StructType("Test"), "test"),
+                ExprStmt(Identifier("test"))
+                # ExprStmt(MemberAccess(Identifier("test"), "x"))
+            ])
+        )
+    ])
+    expected = ""
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"
+
+# def test_struct_decl_03():
+#     ast = Program([
+#         StructDecl("Test", [
+#                 MemberDecl(IntType(), 'x'),
+#                 MemberDecl(FloatType(), 'y')
+#             ]),
+#         FuncDecl(
+#             VoidType(),
+#             "main",
+#             [],
+#             BlockStmt([
+#                 VarDecl(StructType("Test"), "test"),
+#                 ExprStmt(AssignExpr(MemberAccess(Identifier("test"), "x"), IntLiteral(10))),
+#                 ExprStmt(FuncCall("printInt", [
+#                     MemberAccess(Identifier("test"), "x")
+#                 ]))
+#             ])
+#         )
+#     ])
+#     expected = "10"
+#     result = CodeGenerator().generate_and_run(ast)
+#     assert result == expected, f"Expected '{expected}', got '{result}'"
