@@ -291,13 +291,10 @@ def test_struct_decl_03():
             [],
             BlockStmt([
                 VarDecl(StructType("Test"), "test"),
-                ExprStmt(AssignExpr(MemberAccess(Identifier("test"), "x"), IntLiteral(10)))
-                # ExprStmt(FuncCall("printInt", [
-                #     MemberAccess(Identifier("test"), "x")
-                # ]))
-                # ExprStmt(FuncCall("printInt", [
-                #     IntLiteral(10)
-                # ]))
+                ExprStmt(AssignExpr(MemberAccess(Identifier("test"), "x"), IntLiteral(10))),
+                ExprStmt(FuncCall("printInt", [
+                    MemberAccess(Identifier("test"), "x")
+                ]))
             ])
         )
     ])

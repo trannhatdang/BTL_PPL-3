@@ -42,7 +42,6 @@ class CodeGenerator(BaseVisitor):
         if isinstance(node, StringLiteral):
             return StringType()
         if isinstance(node, Identifier):
-            print('infer type')
             return self._lookup_symbol(node.name, o.sym).type
         if isinstance(node, MemberAccess):
             return StructType()
@@ -268,7 +267,7 @@ class CodeGenerator(BaseVisitor):
             code = rhs_code + self.emit.emit_dup(o.frame) + self.emit.emit_write_var(lhs_name, lhs_sym.type, idx, o.frame)
         else:
             #member acc
-            code = rhs_code + self.emit.emit_read_var(lhs_name, lhs_sym.type, idx, o.frame) + self.emit.emit_dup_x1(o.frame) + self.emit.emit_put_field(node.lhs.member, self._get_member_typ(lhs_sym.type.struct_name, node.lhs.member), o.frame)
+            code = self.emit.emit_read_var(lhs_name, lhs_sym.type, idx, o.frame) + rhs_code + self.emit.emit_dup_x1(o.frame) + self.emit.emit_put_field(f'{lhs_sym.type.struct_name}/{node.lhs.member}', self._get_member_typ(lhs_sym.type.struct_name, node.lhs.member), o.frame)
 
         return code, rhs_type
 
@@ -390,7 +389,7 @@ class CodeGenerator(BaseVisitor):
         frame = o.frame
 
         if node.operator in ["++", "--"]:
-            name = node.name if isinstance(node, Identifier) else node.obj
+            name = node.name if isinstance(node, Identifier) else node.obj.name
             sym = self._lookup_symbol(name, o.sym)
             idx = sym.value.value
             result_type = FloatType() if is_float_type(typ) else IntType()
@@ -400,7 +399,7 @@ class CodeGenerator(BaseVisitor):
             if isinstance(node.operand, Identifier):
                 code = operand_val + self.emit.emit_dup() + one_code + self.emit.emit_add_op(node.operator[0], result_type + self.emit.emit_write_var(node.operand), frame) + self.emit.emit_write_var(node.operand.name, idx, sym.type, o.frame)
             else:
-                code = operand_val + self.emit.emit_read_var(node.operand.obj, sym.type, idx, o.frame) + operand_val + one_code + self.emit.emit_add_op(node.operator[0], result_type + self.emit.emit_write_var(node.operand), frame) + self.emit.emit_put_field(node.operand.obj, result_type, sym.typ, o.frame)
+                code = self.emit.emit_read_var(node.operand.obj, sym.type, idx, o.frame) + operand_val + self.emit.dup_x1(o.frame) + one_code + self.emit.emit_add_op(node.operator[0], result_type + self.emit.emit_write_var(node.operand), frame) + self.emit.emit_put_field(f'{sym.type.name}/{node.operand.obj}', result_type, sym.typ, o.frame)
 
             return code, result_type
 
@@ -412,7 +411,7 @@ class CodeGenerator(BaseVisitor):
         struct_name = sym.type.struct_name
         member_typ = self._get_member_typ(struct_name, member)
 
-        code = self.emit.emit_read_var(name, sym.type, sym.value.value, o.frame) + self.emit.emit_get_field(member, member_typ, o.frame)
+        code = self.emit.emit_read_var(name, sym.type, sym.value.value, o.frame) + self.emit.emit_get_field(f'{struct_name}/{member}', member_typ, o.frame)
 
         return code, sym.type
 
