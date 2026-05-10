@@ -29,6 +29,7 @@ class CodeGenerator(BaseVisitor):
 
     def _lookup_symbol(self, name: str, sym_list: list[Symbol]) -> Symbol:
         for sym in reversed(sym_list):
+            # print(sym.name)
             if sym.name == name:
                 return sym
         raise RuntimeError(f"Undeclared symbol: {name}")
@@ -41,6 +42,7 @@ class CodeGenerator(BaseVisitor):
         if isinstance(node, StringLiteral):
             return StringType()
         if isinstance(node, Identifier):
+            print('infer type')
             return self._lookup_symbol(node.name, o.sym).type
         if isinstance(node, MemberAccess):
             return StructType()
@@ -156,15 +158,26 @@ class CodeGenerator(BaseVisitor):
         frame = o.frame
         idx = frame.get_new_index()
         var_type = node.var_type if node.var_type else self._infer_type(node.init_value, Access(frame, o.sym))
-        self.emit.print_out(
-            self.emit.emit_var(
-                idx, node.name, var_type, frame.get_start_label(), frame.get_end_label()
+
+        if isinstance(var_type, StructType) or type(var_type).__name__ == 'StructType':
+            self.emit.print_out(
+                self.emit.emit_new_instance(
+                    var_type.struct_name, frame
+                )
+                + self.emit.emit_write_var(node.name, var_type, idx, frame)
             )
-        )
+        else:
+            self.emit.print_out(
+                self.emit.emit_var(
+                    idx, node.name, var_type, frame.get_start_label(), frame.get_end_label()
+                )
+            )
+
         if node.init_value is not None:
             rhs_code, _ = self.visit(node.init_value, Access(frame, o.sym))
             self.emit.print_out(rhs_code)
             self.emit.print_out(self.emit.emit_write_var(node.name, var_type, idx, frame))
+
         o.sym.append(Symbol(node.name, var_type, Index(idx)))
         return o
 
@@ -244,7 +257,7 @@ class CodeGenerator(BaseVisitor):
         if isinstance(node.lhs, Identifier):
             lhs_name = node.lhs.name
         elif isinstance(node.lhs, MemberAccess):
-            lhs_name = node.lhs.obj
+            lhs_name = node.lhs.obj.name
         else:
             raise RuntimeError("Minimal codegen only supports identifier assignment or member access")
 
@@ -255,7 +268,7 @@ class CodeGenerator(BaseVisitor):
             code = rhs_code + self.emit.emit_dup(o.frame) + self.emit.emit_write_var(lhs_name, lhs_sym.type, idx, o.frame)
         else:
             #member acc
-            code = rhs_code + self.emit.emit_read_var(lhs_name, lhs_sym.type, idx, o.frame) + rhs_code + self.emit.emit_put_field(node.lhs.member_name, lhs_sym.type, o.frame)
+            code = rhs_code + self.emit.emit_read_var(lhs_name, lhs_sym.type, idx, o.frame) + self.emit.emit_dup_x1(o.frame) + self.emit.emit_put_field(node.lhs.member, self._get_member_typ(lhs_sym.type.struct_name, node.lhs.member), o.frame)
 
         return code, rhs_type
 
@@ -285,14 +298,23 @@ class CodeGenerator(BaseVisitor):
 
     def visit_struct_decl(self, node: StructDecl, o: Any = None):
         self.struct_emit = Emitter(f"{node.name}.j")
-        self.struct_emit.print_out(self.struct_emit.emit_prolog(node.name))
-
         frame = Frame(node.name, None)
+
+        self.struct_emit.print_out(self.struct_emit.emit_prolog(node.name))
 
         struct = [node.name]
 
         struct_members = list(map(lambda x: self.visit(x, Access(frame, [])), node.members))
+
         struct += struct_members
+
+        self.struct_emit.print_out(self.struct_emit.emit_init_method())
+        self.struct_emit.print_out(self.struct_emit.jvm.emitLIMITSTACK(1))
+        self.struct_emit.print_out(self.struct_emit.jvm.emitLIMITLOCAL(1))
+        self.struct_emit.print_out(self.struct_emit.emit_read_var(node.name, StructType(node.name), 0, frame))
+        self.struct_emit.print_out(self.struct_emit.emit_new_object())
+        self.struct_emit.print_out(self.struct_emit.emit_return(VoidType(), frame))
+        self.struct_emit.print_out(self.struct_emit.jvm.emitENDMETHOD())
 
         self.struct_list.append(struct)
         #print(self.struct_list)
@@ -369,7 +391,6 @@ class CodeGenerator(BaseVisitor):
 
         if node.operator in ["++", "--"]:
             name = node.name if isinstance(node, Identifier) else node.obj
-            print(name)
             sym = self._lookup_symbol(name, o.sym)
             idx = sym.value.value
             result_type = FloatType() if is_float_type(typ) else IntType()
@@ -391,9 +412,9 @@ class CodeGenerator(BaseVisitor):
         struct_name = sym.type.struct_name
         member_typ = self._get_member_typ(struct_name, member)
 
-        self.emit.emit_read_var(name, member_typ, sym.value.value, o.frame)
+        code = self.emit.emit_read_var(name, sym.type, sym.value.value, o.frame) + self.emit.emit_get_field(member, member_typ, o.frame)
 
-        return self.emit.emit_get_field(member, sym.type, o.frame), sym.type
+        return code, sym.type
 
     def visit_struct_literal(self, node: StructLiteral, o: Any = None):
         raise RuntimeError("StructLiteral not supported in minimal codegen")

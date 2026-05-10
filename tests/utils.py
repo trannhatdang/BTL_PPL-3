@@ -153,6 +153,37 @@ class CodeGenerator:
                 except OSError:
                     pass
 
+    def generate(self, ast, input_data=""):
+        try:
+            self._cleanup_generated_files()
+
+            # Ensure runtime io.class exists when running tests directly via pytest.
+            io_java = os.path.join(self.runtime_dir, "io.java")
+            io_class = os.path.join(self.runtime_dir, "io.class")
+            if os.path.exists(io_java) and not os.path.exists(io_class):
+                import subprocess
+
+                compile_result = subprocess.run(
+                    ["javac", "io.java"],
+                    cwd=self.runtime_dir,
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                if compile_result.returncode != 0:
+                    return f"Runtime compile error: {compile_result.stderr}"
+
+            # Change to runtime directory and generate code from AST
+            original_dir = os.getcwd()
+            os.chdir(self.runtime_dir)
+            try:
+                self.codegen.visit(ast)
+            finally:
+                os.chdir(original_dir)
+        except Exception as e:
+            return f"Code generation error: {str(e)}"
+
+
     def generate_and_run(self, ast, input_data=""):
         """
         Generate code from AST and run it, return output.
@@ -213,7 +244,7 @@ class CodeGenerator:
                         timeout=10,
                     )
 
-                    if result.returncode != 0:
+                    if result.stderr:
                         return f"Assembly error for {os.path.basename(j_file)}: {result.stderr}"
 
                 # Find the class with main method (TyC class)

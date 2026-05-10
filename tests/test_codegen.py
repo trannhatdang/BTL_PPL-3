@@ -271,8 +271,7 @@ def test_struct_decl_02():
             [],
             BlockStmt([
                 VarDecl(StructType("Test"), "test"),
-                ExprStmt(Identifier("test"))
-                # ExprStmt(MemberAccess(Identifier("test"), "x"))
+                ExprStmt(MemberAccess(Identifier("test"), "x"))
             ])
         )
     ])
@@ -280,25 +279,28 @@ def test_struct_decl_02():
     result = CodeGenerator().generate_and_run(ast)
     assert result == expected, f"Expected '{expected}', got '{result}'"
 
-# def test_struct_decl_03():
-#     ast = Program([
-#         StructDecl("Test", [
-#                 MemberDecl(IntType(), 'x'),
-#                 MemberDecl(FloatType(), 'y')
-#             ]),
-#         FuncDecl(
-#             VoidType(),
-#             "main",
-#             [],
-#             BlockStmt([
-#                 VarDecl(StructType("Test"), "test"),
-#                 ExprStmt(AssignExpr(MemberAccess(Identifier("test"), "x"), IntLiteral(10))),
-#                 ExprStmt(FuncCall("printInt", [
-#                     MemberAccess(Identifier("test"), "x")
-#                 ]))
-#             ])
-#         )
-#     ])
-#     expected = "10"
-#     result = CodeGenerator().generate_and_run(ast)
-#     assert result == expected, f"Expected '{expected}', got '{result}'"
+def test_struct_decl_03():
+    ast = Program([
+        StructDecl("Test", [
+                MemberDecl(IntType(), 'x'),
+                MemberDecl(FloatType(), 'y')
+            ]),
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                VarDecl(StructType("Test"), "test"),
+                ExprStmt(AssignExpr(MemberAccess(Identifier("test"), "x"), IntLiteral(10)))
+                # ExprStmt(FuncCall("printInt", [
+                #     MemberAccess(Identifier("test"), "x")
+                # ]))
+                # ExprStmt(FuncCall("printInt", [
+                #     IntLiteral(10)
+                # ]))
+            ])
+        )
+    ])
+    expected = "10"
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"

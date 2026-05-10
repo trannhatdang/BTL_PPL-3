@@ -713,3 +713,9 @@ class Emitter:
         indent = ' '
 
         return ".field" + indent + lexeme + indent + self.get_jvm_type(in_) + end
+
+    def emit_new_object(self):
+        return "\tinvokespecial java/lang/Object/<init>()V\n"
+
+    def emit_init_method(self):
+        return self.jvm.emitMETHOD("<init>()", self.get_jvm_type(VoidType()), False)
