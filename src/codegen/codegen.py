@@ -36,8 +36,8 @@ class CodeGenerator(BaseVisitor):
     def _infer_struct(self, typ_list):
         len_check = [struct for struct in self.struct_list if (len(struct) - 1) == len(typ_list)]
         ret = [struct for struct in len_check if self._check_struct_match(struct[1:], typ_list)]
-        print(len_check)
-        print(ret)
+        # print(len_check)
+        # print(ret)
 
         if len(ret) == 0:
             raise RuntimeError("No such struct")
@@ -116,6 +116,15 @@ class CodeGenerator(BaseVisitor):
             raise RuntimeError("No such member")
 
         return arr[0]
+
+    def _put_struct_field(self, lhs_name, lhs_type, lhs_member_name, lhs_member_type, lhs_idx, o):
+        code = self.emit.emit_dup(o.frame)
+        code += self.emit.emit_get_field(f'{lhs_type.struct_name}/{lhs_member_name}', lhs_member_type, o.frame)
+        code += self.emit.emit_read_var(lhs_name, lhs_type, lhs_idx, o.frame)
+        code += self.emit.emit_dup_x1(o.frame)
+        code += self.emit.emit_pop(o.frame)
+        code += self.emit.emit_put_field(f'{lhs_type.struct_name}/{lhs_member_name}', lhs_member_type, o.frame)
+        return code
 
     def visit_program(self, node: Program, o: Any = None):
         self.emit = Emitter(f"{self.class_name}.j")
@@ -206,8 +215,13 @@ class CodeGenerator(BaseVisitor):
 
         if node.init_value is not None:
             rhs_code, _ = self.visit(node.init_value, Access(frame, o.sym))
-            self.emit.print_out(rhs_code)
-            self.emit.print_out(self.emit.emit_write_var(node.name, var_type, idx, frame))
+            if isinstance(var_type, StructType) or type(var_type).__name__ == 'StructType':
+                struct = self._find_struct(var_type.struct_name)
+                code = rhs_code + ''.join([self._put_struct_field(node.name, var_type, struct[i][0], struct[i][1], idx, o) for i in range(1, len(struct))])
+                self.emit.print_out(code)
+            else:
+                self.emit.print_out(rhs_code)
+                self.emit.print_out(self.emit.emit_write_var(node.name, var_type, idx, frame))
 
         o.sym.append(Symbol(node.name, var_type, Index(idx)))
         return o
@@ -284,9 +298,6 @@ class CodeGenerator(BaseVisitor):
             return left_code + right_code + self.emit.emit_re_op(node.operator, op_type, frame), IntType()
         raise RuntimeError(f"Unsupported operator: {node.operator}")
 
-    def put_field_code(self, lhs_name, lhs_type, lhs_member_name, lhs_member_type, lhs_idx, rhs_code, o):
-        return self.emit.emit_read_var(lhs_name, lhs_type, lhs_idx, o.frame) + rhs_code + self.emit.emit_put_field(f'{lhs_type.struct_name}/{lhs_member_name}', lhs_member_type, o.frame)
-
     def visit_assign_expr(self, node: AssignExpr, o: Access = None):
         if isinstance(node.lhs, Identifier):
             lhs_name = node.lhs.name
@@ -301,9 +312,7 @@ class CodeGenerator(BaseVisitor):
 
         if isinstance(node.lhs, Identifier) and isinstance(node.rhs, StructLiteral):
             struct = self._find_struct(lhs_sym.type.struct_name)
-            self._check_struct_match(struct[1:], rhs_type)
-            code = rhs_code + self.emit.emit_read_var(lhs_name, lhs_sym.type, idx, o.frame) + "".join([self.put_field_code(lhs_name, lhs_sym.type, struct[i][0], idx, rhs_code[i], o) for i in range(len(rhs_code))])
-
+            code = rhs_code + "".join([self._put_struct_field(lhs_name, lhs_sym.type, struct[i][0], struct[i][1], idx, o) for i in range(1, len(struct))])
         elif isinstance(node.lhs, Identifier):
             code = rhs_code + self.emit.emit_dup(o.frame) + self.emit.emit_write_var(lhs_name, lhs_sym.type, idx, o.frame)
         else:
@@ -394,15 +403,17 @@ class CodeGenerator(BaseVisitor):
         frame = o.frame
         start_label = frame.get_new_label()
         end_label = frame.get_new_label()
-        init_code, _ = self.visit(node.init, Access(frame, o.sym))
-        self.emit.print_out(init_code)
+        # print('hi')
+        self.visit(node.init, o)
         self.emit.print_out(self.emit.emit_label(start_label, frame))
+        # print('hi')
         cond_code, _ = self.visit(node.condition, Access(frame, o.sym))
         self.emit.print_out(cond_code)
         self.emit.print_out(self.emit.emit_if_false(end_label, frame))
         self.visit(node.body, o)
         update_code, _ = self.visit(node.update, Access(frame, o.sym))
         self.emit.print_out(update_code)
+        self.emit.print_out(self.emit.emit_pop(frame))
         self.emit.print_out(self.emit.emit_goto(start_label, frame))
         self.emit.print_out(self.emit.emit_label(end_label, frame))
         return o
@@ -423,28 +434,66 @@ class CodeGenerator(BaseVisitor):
         raise RuntimeError("ContinueStmt not supported in minimal codegen")
 
     def visit_prefix_op(self, node: PrefixOp, o: Any = None):
-        if isinstance(operand_typ, IntType):
-            raise RuntimeError("Incorrect operand type for prefix op")
-
-    def visit_postfix_op(self, node: PostfixOp, o: Any = None):
         operand_val, operand_typ = self.visit(node.operand, o)
 
-        if isinstance(operand_typ, IntType):
+        if not isinstance(operand_typ, IntType):
             raise RuntimeError("Incorrect operand type for postfix op")
+
         frame = o.frame
 
         if node.operator in ["++", "--"]:
-            name = node.name if isinstance(node, Identifier) else node.obj.name
+            name = node.operand.name if isinstance(node.operand, Identifier) else node.obj.name
             sym = self._lookup_symbol(name, o.sym)
             idx = sym.value.value
             result_type = IntType()
 
-            one_code, _ = self.visit(IntLiteral(1), o)
+            one_code, _ = self.visit(IntLiteral(1), Access(o.frame, o.sym))
 
             if isinstance(node.operand, Identifier):
-                code = operand_val + self.emit.emit_dup() + one_code + self.emit.emit_add_op(node.operator[0], result_type + self.emit.emit_write_var(node.operand), frame) + self.emit.emit_write_var(node.operand.name, idx, sym.type, o.frame)
+                code = operand_val
+                code += one_code
+                code += self.emit.emit_add_op(node.operator[0], result_type, o.frame)
+                code += self.emit.emit_dup(frame)
+                code += self.emit.emit_write_var(node.operand.name, sym.type, idx, o.frame)
             else:
-                code = self.emit.emit_read_var(node.operand.obj, sym.type, idx, o.frame) + operand_val + self.emit.dup_x1(o.frame) + one_code + self.emit.emit_add_op(node.operator[0], result_type + self.emit.emit_write_var(node.operand), frame) + self.emit.emit_put_field(f'{sym.type.name}/{node.operand.obj}', result_type, sym.typ, o.frame)
+                code = self.emit.emit_read_var(node.operand.obj, sym.type, idx, o.frame)
+                code += operand_val
+                code += one_code
+                code += self.emit.emit_add_op(node.operator[0], result_type, o.frame)
+                code += self.emit.emit_dup_x1(o.frame)
+                code += self.emit.emit_put_field(f'{sym.type.name}/{node.operand.obj}', result_type, sym.typ, o.frame)
+
+            return code, result_type
+
+    def visit_postfix_op(self, node: PostfixOp, o: Any = None):
+        operand_val, operand_typ = self.visit(node.operand, o)
+
+        if not isinstance(operand_typ, IntType):
+            raise RuntimeError("Incorrect operand type for postfix op")
+
+        frame = o.frame
+
+        if node.operator in ["++", "--"]:
+            name = node.operand.name if isinstance(node.operand, Identifier) else node.obj.name
+            sym = self._lookup_symbol(name, o.sym)
+            idx = sym.value.value
+            result_type = IntType()
+
+            one_code, _ = self.visit(IntLiteral(1), Access(o.frame, o.sym))
+
+            if isinstance(node.operand, Identifier):
+                code = operand_val
+                code += self.emit.emit_dup(frame)
+                code += one_code
+                code += self.emit.emit_add_op(node.operator[0], result_type, o.frame)
+                code += self.emit.emit_write_var(node.operand.name, sym.type, idx, o.frame)
+            else:
+                code = self.emit.emit_read_var(node.operand.obj, sym.type, idx, o.frame)
+                code += operand_val
+                code += self.emit.dup_x1(o.frame)
+                code += one_code
+                code += self.emit.emit_add_op(node.operator[0], result_type, o.frame)
+                code += self.emit.emit_put_field(f'{sym.type.name}/{node.operand.obj}', result_type, sym.typ, o.frame)
 
             return code, result_type
 

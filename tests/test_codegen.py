@@ -208,27 +208,74 @@ def test_010():
     result = CodeGenerator().generate_and_run(ast)
     assert result == expected, f"Expected '{expected}', got '{result}'"
 
-# def test_for_01():
-#     ast = Program([
-#         FuncDecl(
-#             VoidType(),
-#             "main",
-#             [],
-#             BlockStmt([
-#                 ForStmt(VarDecl(IntType(), "i", IntLiteral(0)),
-#                         BinaryOp(Identifier("i"), "<", IntLiteral(10)),
-#                         PostfixOp(Identifier("i"), "++"),
-#                         BlockStmt([
-#                             ExprStmt(FuncCall("printInt", [
-#                                 Identifier("i")
-#                             ]))
-#                         ])
-#             ])
-#         )
-#     ])
-#     expected = "12345678910"
-#     result = CodeGenerator().generate_and_run(ast)
-#     assert result == expected, f"Expected '{expected}', got '{result}'"
+def test_for_01():
+    ast = Program([
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                ForStmt(VarDecl(IntType(), "i", IntLiteral(0)),
+                        BinaryOp(Identifier("i"), "<", IntLiteral(10)),
+                        PostfixOp("++", Identifier("i")),
+                        BlockStmt([
+                            ExprStmt(FuncCall("printInt", [
+                                Identifier("i")
+                            ]))
+                        ])
+                )
+            ])
+        )
+    ])
+    expected = "0123456789"
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"
+
+def test_for_02():
+    ast = Program([
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                ForStmt(VarDecl(IntType(), "i", IntLiteral(0)),
+                        BinaryOp(Identifier("i"), "<", IntLiteral(10)),
+                        PrefixOp("++", Identifier("i")),
+                        BlockStmt([
+                            ExprStmt(FuncCall("printInt", [
+                                Identifier("i")
+                            ]))
+                        ])
+                )
+            ])
+        )
+    ])
+    expected = "0123456789"
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"
+
+def test_for_03():
+    ast = Program([
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                ForStmt(VarDecl(IntType(), "i", IntLiteral(0)),
+                        BinaryOp(Identifier("i"), "<", IntLiteral(10)),
+                        PrefixOp("++", Identifier("i")),
+                        BlockStmt([
+                            ExprStmt(FuncCall("printInt", [
+                                Identifier("i")
+                            ]))
+                        ])
+                )
+            ])
+        )
+    ])
+    expected = "0123456789"
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"
 
 def test_struct_decl_01():
     ast = Program([
@@ -316,7 +363,7 @@ def test_struct_literal_01():
                 VarDecl(StructType("Point"), "test"),
                 ExprStmt(AssignExpr(Identifier("test"), StructLiteral([IntLiteral(1), IntLiteral(1)]))),
                 ExprStmt(FuncCall("printString", [
-                    StringLiteral("( ")
+                    StringLiteral("(")
                 ])),
                 ExprStmt(FuncCall("printInt", [
                     MemberAccess(Identifier("test"), "x")
@@ -334,5 +381,123 @@ def test_struct_literal_01():
         )
     ])
     expected = "(1, 1)"
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"
+
+def test_struct_literal_02():
+    ast = Program([
+        StructDecl("Point", [
+                MemberDecl(FloatType(), 'x'),
+                MemberDecl(FloatType(), 'y')
+            ]),
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                VarDecl(StructType("Point"), "test"),
+                ExprStmt(AssignExpr(Identifier("test"), StructLiteral([FloatLiteral(-2.5), FloatLiteral(2.5)]))),
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral("(")
+                ])),
+                ExprStmt(FuncCall("printFloat", [
+                    MemberAccess(Identifier("test"), "x")
+                ])),
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral(", ")
+                ])),
+                ExprStmt(FuncCall("printFloat", [
+                    MemberAccess(Identifier("test"), "y")
+                ])),
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral(")")
+                ]))
+            ])
+        )
+    ])
+    expected = "(-2.5, 2.5)"
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"
+
+def test_struct_literal_03():
+    ast = Program([
+        StructDecl("Person", [
+                MemberDecl(StringType(), 'name'),
+                MemberDecl(IntType(), 'age'),
+        ]),
+        FuncDecl(
+            VoidType(),
+            "printPerson",
+            [Param(StructType("Person"), "person")],
+            BlockStmt([
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral("\nName: ")
+                ])),
+                ExprStmt(FuncCall("printString", [
+                    MemberAccess(Identifier("person"), "name")
+                ])),
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral("\nAge: ")
+                ])),
+                ExprStmt(FuncCall("printInt", [
+                    MemberAccess(Identifier("person"), "age")
+                ]))
+            ])
+        ),
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                VarDecl(StructType("Person"), "person"),
+                ExprStmt(AssignExpr(Identifier("person"), StructLiteral([StringLiteral('deng'), IntLiteral(21)]))),
+                ExprStmt(FuncCall("printPerson", [
+                    Identifier("person")
+                ]))
+            ])
+        )
+    ])
+    expected = "Name: deng\nAge: 21"
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"
+
+def test_struct_literal_04():
+    ast = Program([
+        StructDecl("Person", [
+                MemberDecl(StringType(), 'name'),
+                MemberDecl(IntType(), 'age'),
+        ]),
+        FuncDecl(
+            VoidType(),
+            "printPerson",
+            [Param(StructType("Person"), "person")],
+            BlockStmt([
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral("\nName: ")
+                ])),
+                ExprStmt(FuncCall("printString", [
+                    MemberAccess(Identifier("person"), "name")
+                ])),
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral("\nAge: ")
+                ])),
+                ExprStmt(FuncCall("printInt", [
+                    MemberAccess(Identifier("person"), "age")
+                ]))
+            ])
+        ),
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                VarDecl(StructType("Person"), "person", StructLiteral([StringLiteral('deng'), IntLiteral(21)])),
+                ExprStmt(FuncCall("printPerson", [
+                    Identifier("person")
+                ]))
+            ])
+        )
+    ])
+    expected = """Name: deng\nAge: 21"""
     result = CodeGenerator().generate_and_run(ast)
     assert result == expected, f"Expected '{expected}', got '{result}'"
