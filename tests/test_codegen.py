@@ -301,3 +301,38 @@ def test_struct_decl_03():
     expected = "10"
     result = CodeGenerator().generate_and_run(ast)
     assert result == expected, f"Expected '{expected}', got '{result}'"
+
+def test_struct_literal_01():
+    ast = Program([
+        StructDecl("Point", [
+                MemberDecl(IntType(), 'x'),
+                MemberDecl(IntType(), 'y')
+            ]),
+        FuncDecl(
+            VoidType(),
+            "main",
+            [],
+            BlockStmt([
+                VarDecl(StructType("Point"), "test"),
+                ExprStmt(AssignExpr(Identifier("test"), StructLiteral([IntLiteral(1), IntLiteral(1)]))),
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral("( ")
+                ])),
+                ExprStmt(FuncCall("printInt", [
+                    MemberAccess(Identifier("test"), "x")
+                ])),
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral(", ")
+                ])),
+                ExprStmt(FuncCall("printInt", [
+                    MemberAccess(Identifier("test"), "y")
+                ])),
+                ExprStmt(FuncCall("printString", [
+                    StringLiteral(")")
+                ]))
+            ])
+        )
+    ])
+    expected = "(1, 1)"
+    result = CodeGenerator().generate_and_run(ast)
+    assert result == expected, f"Expected '{expected}', got '{result}'"

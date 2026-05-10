@@ -29,10 +29,42 @@ class CodeGenerator(BaseVisitor):
 
     def _lookup_symbol(self, name: str, sym_list: list[Symbol]) -> Symbol:
         for sym in reversed(sym_list):
-            # print(sym.name)
             if sym.name == name:
                 return sym
         raise RuntimeError(f"Undeclared symbol: {name}")
+
+    def _infer_struct(self, typ_list):
+        len_check = [struct for struct in self.struct_list if (len(struct) - 1) == len(typ_list)]
+        ret = [struct for struct in len_check if self._check_struct_match(struct[1:], typ_list)]
+        print(len_check)
+        print(ret)
+
+        if len(ret) == 0:
+            raise RuntimeError("No such struct")
+
+        return ret[0]
+
+    def _find_struct(self, struct_name):
+        ret = [struct for struct in self.struct_list if struct[0] == struct_name]
+
+        if len(ret) == 0:
+            raise RuntimeError("No such struct")
+
+        return ret[0]
+
+    def _check_struct_match(self, struct, literal):
+        struct_len = len(struct)
+        literal_len = len(literal)
+
+        if struct_len != literal_len:
+            raise RuntimeError("Struct mismatch")
+
+        res = [typ for i in range(struct_len) if type(struct[i][1]) is not type(literal[i])]
+
+        if len(res) > 0:
+            raise RuntimeError("Struct mismatch")
+
+        return len(res) == 0
 
     def _infer_type(self, node: Expr, o: Access):
         if isinstance(node, IntLiteral):
@@ -252,6 +284,9 @@ class CodeGenerator(BaseVisitor):
             return left_code + right_code + self.emit.emit_re_op(node.operator, op_type, frame), IntType()
         raise RuntimeError(f"Unsupported operator: {node.operator}")
 
+    def put_field_code(self, lhs_name, lhs_type, lhs_member_name, lhs_member_type, lhs_idx, rhs_code, o):
+        return self.emit.emit_read_var(lhs_name, lhs_type, lhs_idx, o.frame) + rhs_code + self.emit.emit_put_field(f'{lhs_type.struct_name}/{lhs_member_name}', lhs_member_type, o.frame)
+
     def visit_assign_expr(self, node: AssignExpr, o: Access = None):
         if isinstance(node.lhs, Identifier):
             lhs_name = node.lhs.name
@@ -263,7 +298,13 @@ class CodeGenerator(BaseVisitor):
         rhs_code, rhs_type = self.visit(node.rhs, o)
         lhs_sym = self._lookup_symbol(lhs_name, o.sym)
         idx = lhs_sym.value.value
-        if isinstance(node.lhs, Identifier):
+
+        if isinstance(node.lhs, Identifier) and isinstance(node.rhs, StructLiteral):
+            struct = self._find_struct(lhs_sym.type.struct_name)
+            self._check_struct_match(struct[1:], rhs_type)
+            code = rhs_code + self.emit.emit_read_var(lhs_name, lhs_sym.type, idx, o.frame) + "".join([self.put_field_code(lhs_name, lhs_sym.type, struct[i][0], idx, rhs_code[i], o) for i in range(len(rhs_code))])
+
+        elif isinstance(node.lhs, Identifier):
             code = rhs_code + self.emit.emit_dup(o.frame) + self.emit.emit_write_var(lhs_name, lhs_sym.type, idx, o.frame)
         else:
             #member acc
@@ -382,17 +423,21 @@ class CodeGenerator(BaseVisitor):
         raise RuntimeError("ContinueStmt not supported in minimal codegen")
 
     def visit_prefix_op(self, node: PrefixOp, o: Any = None):
-        raise RuntimeError("PrefixOp not supported in minimal codegen")
+        if isinstance(operand_typ, IntType):
+            raise RuntimeError("Incorrect operand type for prefix op")
 
     def visit_postfix_op(self, node: PostfixOp, o: Any = None):
         operand_val, operand_typ = self.visit(node.operand, o)
+
+        if isinstance(operand_typ, IntType):
+            raise RuntimeError("Incorrect operand type for postfix op")
         frame = o.frame
 
         if node.operator in ["++", "--"]:
             name = node.name if isinstance(node, Identifier) else node.obj.name
             sym = self._lookup_symbol(name, o.sym)
             idx = sym.value.value
-            result_type = FloatType() if is_float_type(typ) else IntType()
+            result_type = IntType()
 
             one_code, _ = self.visit(IntLiteral(1), o)
 
@@ -416,5 +461,14 @@ class CodeGenerator(BaseVisitor):
         return code, sym.type
 
     def visit_struct_literal(self, node: StructLiteral, o: Any = None):
-        raise RuntimeError("StructLiteral not supported in minimal codegen")
+        expr_list = [self.visit(val, o) for val in node.values]
 
+        expr_code_list = [code for code, typ in expr_list]
+        typ_list = [typ for code, typ in expr_list]
+
+        frame = o.frame
+        struct = self._infer_struct(typ_list)
+        code = self.emit.emit_new_instance(struct[0], frame) + ''.join([self.emit.emit_dup(frame) + expr_code_list[i] + self.emit.emit_put_field(f'{struct[0]}/{struct[i+1][0]}', struct[i+1][1], o.frame) for i in range(len(expr_code_list))])
+        # print(code)
+
+        return code, StructType(struct[0])
